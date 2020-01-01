@@ -1,6 +1,7 @@
 package controllers;
 
 import com.typesafe.config.Config;
+import play.i18n.MessagesApi;
 import play.mvc.Result;
 
 import javax.inject.Inject;
@@ -11,8 +12,8 @@ import javax.inject.Inject;
 public class HomeController extends BaseController {
 
     @Inject
-    public HomeController(Config config) {
-        super(config);
+    public HomeController(Config config, MessagesApi messagesApi) {
+        super(config, messagesApi);
     }
 
     public Result success() {

@@ -1,0 +1,4 @@
+error.invalid.request = "Invalid Request"
+error.invalid.token = "Invalid Slack Token"
+error.missing.type = "Missing Request Type"
+error.invalid.challenge = "Invalid Challenge Request, challenge parameter not found!"
