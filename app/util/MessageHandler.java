@@ -7,12 +7,12 @@ import play.libs.Json;
 import javax.inject.Inject;
 import java.util.Map;
 
-public class MessageService {
+public class MessageHandler {
 
     private final Messages messages;
 
     @Inject
-    public MessageService(Messages preferred) {
+    public MessageHandler(Messages preferred) {
         messages = preferred;
     }
 

@@ -1,13 +1,11 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.typesafe.config.Config;
-import domain.RequestAction;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
-import util.MessageService;
+import util.AppConfig;
+import util.MessageHandler;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -15,61 +13,62 @@ import java.util.Optional;
 
 public class EventController extends BaseController {
 
-    private MessageService messages;
+    public static class Request {
+        public String token;
+        public String challenge;
+        public String type;
+
+    }
 
     @Inject
-    public EventController(Config config, MessagesApi messagesApi) {
+    public EventController(AppConfig config, MessagesApi messagesApi) {
         super(config, messagesApi);
     }
 
-    public Result handle(Http.Request request) {
+    public Result handle(Http.Request httpRequest) {
+        var messages = new MessageHandler(messagesApi.preferred(httpRequest));
+        var optionalRequest = httpRequest.body().parseJson(Request.class);
+        var error = validateRequest(optionalRequest);
 
-        messages = new MessageService(this.messagesApi.preferred(request));
-        JsonNode node = request.body().asJson();
-        Optional<RequestAction> requestAction = request.body().parseJson(RequestAction.class);
-//        var requestAction = Json.fromJson(node, RequestAction.class);
-        Result error = validateRequest(node);
         if (error != null) {
-            return error;
+            return badRequest(messages.error(error));
         }
 
-        String requestType = getNodeValue(node, "type");
-        if (requestType.equals("url_verification")) {
-            return handleURLVerification(node);
+        var eventRequest = optionalRequest.get();
+        if (eventRequest.type.equals("url_verification")) {
+            return handleURLVerification(messages, eventRequest.challenge);
         }
 
         return ok();
     }
 
-    private Result validateRequest(JsonNode node) {
-        if (!isNodeValid(node)) {
-            return badRequest(messages.error("error.invalid.request"));
+    private String validateRequest(final Optional<Request> request) {
+        if (request.isEmpty()) {
+            return "error.invalid.request";
         }
 
-        String requestToken = getNodeValue(node, "token");
-        if (requestToken == null || !requestToken.equals(config.getString("slack_token"))) {
-            return badRequest(messages.error("error.invalid.token"));
+        if (request.filter(r -> r.token == null || !r.token.equals(config.getToken())).isPresent()) {
+            return "error.invalid.token";
         }
 
-        String requestType = getNodeValue(node, "type");
-        if (requestType == null) {
-            return badRequest(messages.error("error.missing.type"));
+        if (request.filter(r -> r.type == null).isPresent()) {
+            return "error.missing.type";
         }
+
         return null;
     }
 
     /**
      * URL verification happens during configuration of the app Event Subscription URL
-     * @param node
+     * @param challenge
      * @return
      */
-    private Result handleURLVerification(JsonNode node) {
-        String challenge = getNodeValue(node, "challenge");
+    private Result handleURLVerification(final MessageHandler messages, final String challenge) {
         if (challenge == null) {
             return badRequest(messages.error("error.invalid.challenge"));
         }
 
-        var response = Map.of("challenge", challenge);
-        return ok(Json.toJson(response));
+        return ok(Json.toJson(Map.of("challenge", challenge)));
+    }
     }
 }
