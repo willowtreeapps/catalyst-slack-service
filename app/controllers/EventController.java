@@ -3,11 +3,11 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import domain.RequestAction;
-import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
+import util.MessageService;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public class EventController extends BaseController {
 
-    private Messages messages;
+    private MessageService messages;
 
     @Inject
     public EventController(Config config, MessagesApi messagesApi) {
@@ -23,11 +23,11 @@ public class EventController extends BaseController {
     }
 
     public Result handle(Http.Request request) {
-        messages = this.messagesApi.preferred(request);
+
+        messages = new MessageService(this.messagesApi.preferred(request));
         JsonNode node = request.body().asJson();
         Optional<RequestAction> requestAction = request.body().parseJson(RequestAction.class);
 //        var requestAction = Json.fromJson(node, RequestAction.class);
-
         Result error = validateRequest(node);
         if (error != null) {
             return error;
@@ -43,17 +43,17 @@ public class EventController extends BaseController {
 
     private Result validateRequest(JsonNode node) {
         if (!isNodeValid(node)) {
-            return badRequest(messages.at("error.invalid.request"));
+            return badRequest(messages.error("error.invalid.request"));
         }
 
         String requestToken = getNodeValue(node, "token");
         if (requestToken == null || !requestToken.equals(config.getString("slack_token"))) {
-            return badRequest(messages.at("error.invalid.token"));
+            return badRequest(messages.error("error.invalid.token"));
         }
 
         String requestType = getNodeValue(node, "type");
         if (requestType == null) {
-            return badRequest(messages.at("error.missing.type"));
+            return badRequest(messages.error("error.missing.type"));
         }
         return null;
     }
@@ -66,7 +66,7 @@ public class EventController extends BaseController {
     private Result handleURLVerification(JsonNode node) {
         String challenge = getNodeValue(node, "challenge");
         if (challenge == null) {
-            return badRequest(messages.at("error.invalid.challenge"));
+            return badRequest(messages.error("error.invalid.challenge"));
         }
 
         var response = Map.of("challenge", challenge);
