@@ -17,7 +17,6 @@ public class EventController extends BaseController {
         public String token;
         public String challenge;
         public String type;
-
     }
 
     @Inject
@@ -37,9 +36,11 @@ public class EventController extends BaseController {
         var eventRequest = optionalRequest.get();
         if (eventRequest.type.equals("url_verification")) {
             return handleURLVerification(messages, eventRequest.challenge);
+        } else if (eventRequest.type.equals("event_callback")) {
+
         }
 
-        return ok();
+        return badRequest(messages.error("error.unsupported.type"));
     }
 
     private String validateRequest(final Optional<Request> request) {
@@ -65,10 +66,13 @@ public class EventController extends BaseController {
      */
     private Result handleURLVerification(final MessageHandler messages, final String challenge) {
         if (challenge == null) {
-            return badRequest(messages.error("error.invalid.challenge"));
+            return badRequest(messages.error("error.missing.challenge"));
         }
 
         return ok(Json.toJson(Map.of("challenge", challenge)));
     }
+
+    private Result handleEventCallback() {
+        return ok();
     }
 }
