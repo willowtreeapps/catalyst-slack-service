@@ -1,0 +1,5 @@
+error.invalid.request = Invalid request
+error.invalid.token = Invalid slack token
+error.missing.type = Missing request type
+error.missing.challenge = Missing challenge parameter
+error.unsupported.type = Unsupported request type
