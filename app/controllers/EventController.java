@@ -37,7 +37,7 @@ public class EventController extends BaseController {
         if (eventRequest.type.equals("url_verification")) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals("event_callback")) {
-
+            return handleEventCallback();
         }
 
         return badRequest(messages.error("error.unsupported.type"));
