@@ -16,4 +16,8 @@ public class SlackConfig implements AppConfig {
     public String getToken() {
         return _config.getString("slack_token");
     }
+    public String getBiasCorrectUrl() {return _config.getString("bias_correct_url"); }
+    public String getBotId() {return _config.getString("bot_id"); }
+    public String getBotUserName() {return _config.getString("bot_username"); }
+
 }

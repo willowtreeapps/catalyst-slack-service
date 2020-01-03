@@ -2,8 +2,10 @@ package controllers;
 
 import play.i18n.MessagesApi;
 import play.libs.Json;
+import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import services.BiasCorrectService;
 import util.AppConfig;
 import util.MessageHandler;
 
@@ -11,21 +13,37 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.Optional;
 
-public class EventController extends BaseController {
+public class EventController extends Controller {
 
     public static class Request {
         public String token;
         public String challenge;
         public String type;
+        public Event event;
     }
 
+    //TODO: get from within event.blocks[{elements:[{}]]}]
+    public static class Event {
+        public String text;
+        public String user;
+        public String team;
+        public String username;
+        public String bot_id;
+    }
+
+    private final AppConfig _config;
+    private final MessagesApi _messagesApi;
+    private final BiasCorrectService _biasCorrectService;
+
     @Inject
-    public EventController(AppConfig config, MessagesApi messagesApi) {
-        super(config, messagesApi);
+    public EventController(AppConfig config, MessagesApi messagesApi, BiasCorrectService biasCorrectService) {
+        this._config = config;
+        this._messagesApi = messagesApi;
+        this._biasCorrectService = biasCorrectService;
     }
 
     public Result handle(Http.Request httpRequest) {
-        var messages = new MessageHandler(messagesApi.preferred(httpRequest));
+        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         var optionalRequest = httpRequest.body().parseJson(Request.class);
         var error = validateRequest(optionalRequest);
 
@@ -37,7 +55,7 @@ public class EventController extends BaseController {
         if (eventRequest.type.equals("url_verification")) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals("event_callback")) {
-            return handleEventCallback();
+            return handleEventCallback(messages, eventRequest.event);
         }
 
         return badRequest(messages.error("error.unsupported.type"));
@@ -48,7 +66,7 @@ public class EventController extends BaseController {
             return "error.invalid.request";
         }
 
-        if (request.filter(r -> r.token == null || !r.token.equals(config.getToken())).isPresent()) {
+        if (request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent()) {
             return "error.invalid.token";
         }
 
@@ -72,7 +90,24 @@ public class EventController extends BaseController {
         return ok(Json.toJson(Map.of("challenge", challenge)));
     }
 
-    private Result handleEventCallback() {
-        return ok();
+    private Result handleEventCallback(final MessageHandler messages, final Event event) {
+        if (event == null) {
+            return badRequest(messages.error("error.invalid.event"));
+        }
+
+        String userName = event.username;
+        String botId = event.bot_id;
+
+        boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
+            userName != null && userName.equals(_config.getBotUserName());
+
+        if (isBotMessage) {
+            return ok();
+        }
+
+        BiasCorrectService.CorrectRequest request = new BiasCorrectService.CorrectRequest();
+        request.text = event.text;
+        BiasCorrectService.CorrectResponse response = _biasCorrectService.correct(request);
+        return ok(messages.toJson("ok", "true"));
     }
 }

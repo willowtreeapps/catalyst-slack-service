@@ -1,5 +1,8 @@
 package util;
 
 public interface AppConfig {
-    public String getToken();
+    String getToken();
+    String getBiasCorrectUrl();
+    String getBotId();
+    String getBotUserName();
 }
