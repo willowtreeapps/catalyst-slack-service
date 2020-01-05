@@ -3,7 +3,7 @@ package services;
 import org.junit.Test;
 
 
-public class BiasCorrectServiceTest {
+public class BiasCorrectorTest {
     //TODO!
     @Test
     public void testCorrect() { }

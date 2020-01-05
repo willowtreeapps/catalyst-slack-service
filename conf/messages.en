@@ -3,3 +3,4 @@ error.invalid.token = Invalid slack token
 error.missing.type = Missing request type
 error.missing.challenge = Missing challenge parameter
 error.unsupported.type = Unsupported request type
+error.invalid.event = Invalid event body

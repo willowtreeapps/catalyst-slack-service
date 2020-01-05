@@ -5,7 +5,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import services.BiasCorrectService;
+import services.MessageCorrector;
 import util.AppConfig;
 import util.MessageHandler;
 
@@ -33,13 +33,13 @@ public class EventController extends Controller {
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
-    private final BiasCorrectService _biasCorrectService;
+    private final MessageCorrector _biasCorrector;
 
     @Inject
-    public EventController(AppConfig config, MessagesApi messagesApi, BiasCorrectService biasCorrectService) {
+    public EventController(AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector) {
         this._config = config;
         this._messagesApi = messagesApi;
-        this._biasCorrectService = biasCorrectService;
+        this._biasCorrector = biasCorrector;
     }
 
     public Result handle(Http.Request httpRequest) {
@@ -101,13 +101,11 @@ public class EventController extends Controller {
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        if (isBotMessage) {
+        if (isBotMessage || event.text == null || event.text.isBlank()) {
             return ok();
         }
 
-        BiasCorrectService.CorrectRequest request = new BiasCorrectService.CorrectRequest();
-        request.text = event.text;
-        BiasCorrectService.CorrectResponse response = _biasCorrectService.correct(request);
+        String correction = _biasCorrector.correct(event.text);
         return ok(messages.toJson("ok", "true"));
     }
 }

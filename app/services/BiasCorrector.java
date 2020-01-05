@@ -9,30 +9,34 @@ import util.AppConfig;
 import javax.inject.Inject;
 import java.util.concurrent.ExecutionException;
 
-public class BiasCorrectService implements WSBodyReadables {
+public class BiasCorrector implements MessageCorrector,WSBodyReadables {
+    private static class Response {
+        public String input;
+        public String context;
+        public String correction;
+    }
 
-    public static class CorrectRequest {
+    private static class Request {
         public String text;
     }
 
-    public static class CorrectResponse {
-        public String context;
-        public String correction;
-        public String input;
-    }
     private WSClient _wsClient;
     private AppConfig _config;
 
     @Inject
-    BiasCorrectService(AppConfig config, WSClient wsClient) {
+    BiasCorrector(AppConfig config, WSClient wsClient) {
         this._wsClient = wsClient;
         this._config = config;
     }
 
-    public BiasCorrectService.CorrectResponse correct(BiasCorrectService.CorrectRequest text) {
+    @Override
+    public String correct(String input) {
+        var request = new Request();
+        request.text = input;
+
         var jsonPromise = _wsClient.url(_config.getBiasCorrectUrl())
                 .setContentType("application/json")
-                .post(Json.toJson(text))
+                .post(Json.toJson(request))
                 .thenApply(r -> r.getBody(json()));
 
         JsonNode response = null;
@@ -42,6 +46,6 @@ public class BiasCorrectService implements WSBodyReadables {
             e.printStackTrace();
         }
 
-        return Json.fromJson(response, BiasCorrectService.CorrectResponse.class);
+        return response != null ? Json.fromJson(response, Response.class).correction : "";
     }
 }

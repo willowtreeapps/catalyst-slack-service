@@ -8,6 +8,10 @@ import play.mvc.Result;
  */
 public class HomeController extends Controller {
 
+    public Result healthCheck() {
+        return ok();
+    }
+
     public Result success() {
         return ok(views.html.success.render());
     }

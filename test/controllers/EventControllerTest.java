@@ -1,14 +1,14 @@
 package controllers;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
-import services.BiasCorrectService;
+import services.MessageCorrector;
+import services.MockCorrector;
 import util.AppConfig;
 import util.MockConfig;
 
@@ -17,13 +17,13 @@ import static play.inject.Bindings.bind;
 import static play.test.Helpers.*;
 
 public class EventControllerTest extends WithApplication {
-    private static final BiasCorrectService mockService = Mockito.mock(BiasCorrectService.class);
 
     @Override
     protected Application provideApplication() {
 
-        return new GuiceApplicationBuilder().overrides(bind(AppConfig.class).to(MockConfig.class))
-                .bindings(bind(BiasCorrectService.class).toInstance(mockService))
+        return new GuiceApplicationBuilder()
+                .overrides(bind(AppConfig.class).to(MockConfig.class))
+                .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .build();
     }
 
@@ -126,11 +126,62 @@ public class EventControllerTest extends WithApplication {
     }
 
     @Test
-    public void testBiasCorrectNoChange() {
-        BiasCorrectService.CorrectResponse response = new BiasCorrectService.CorrectResponse();
-        response.correction = "";
-        Mockito.when(mockService.correct(Mockito.any())).thenReturn(response);
+    public void testEmptyEvent() {
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
 
+        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+
+        Result result = route(app, httpRequest);
+        var body = contentAsBytes(result).toArray();
+        var error = Json.parse(body).path("error").textValue();
+
+        assertEquals(BAD_REQUEST, result.status());
+        assertEquals("Invalid event body", error);
+    }
+
+    @Test
+    public void testEmptyMessage() {
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = new EventController.Event();
+        eventRequest.event.text = "";
+
+        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+
+        Result result = route(app, httpRequest);
+        var body = contentAsBytes(result).toArray();
+
+        assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testBotMessageIgnored() {
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = new EventController.Event();
+        eventRequest.event.text = "bot message";
+        eventRequest.event.bot_id = "valid_bot_id";
+        eventRequest.event.username = "valid_bot_username";
+
+        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+
+        Result result = route(app, httpRequest);
+
+        assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testNonBiasedMessage() {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
@@ -142,18 +193,11 @@ public class EventControllerTest extends WithApplication {
                 .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
-        var body = contentAsBytes(result).toArray();
-        var challenge = Json.parse(body);
-
         assertEquals(OK, result.status());
     }
 
     @Test
     public void testBiasCorrected() {
-        BiasCorrectService.CorrectResponse response = new BiasCorrectService.CorrectResponse();
-        response.correction = "she's so thoughtful";
-        Mockito.when(mockService.correct(Mockito.any())).thenReturn(response);
-
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
@@ -166,7 +210,7 @@ public class EventControllerTest extends WithApplication {
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
-        var challenge = Json.parse(body);
+        var suggestedCorrection = Json.parse(body);
 
         assertEquals(OK, result.status());
     }
