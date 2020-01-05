@@ -7,8 +7,10 @@ import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
+import services.AppService;
 import services.MessageCorrector;
 import services.MockCorrector;
+import services.MockSlackService;
 import util.AppConfig;
 import util.MockConfig;
 
@@ -24,6 +26,7 @@ public class EventControllerTest extends WithApplication {
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
+                .overrides(bind(AppService.class).to(MockSlackService.class))
                 .build();
     }
 
@@ -182,11 +185,14 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testNonBiasedMessage() {
+        var event = new EventController.Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
-        eventRequest.event = new EventController.Event();
-        eventRequest.event.text = "text";
+        eventRequest.event = event;
+
+        event.text = "text";
+        event.user = "USER123";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -198,11 +204,14 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testBiasCorrected() {
+        var event = new EventController.Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
-        eventRequest.event = new EventController.Event();
-        eventRequest.event.text = "she's so quiet";
+        eventRequest.event = event;
+
+        event.text = "she's so quiet";
+        event.user = "USER123";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)

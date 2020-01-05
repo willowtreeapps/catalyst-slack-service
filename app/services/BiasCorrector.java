@@ -20,8 +20,8 @@ public class BiasCorrector implements MessageCorrector,WSBodyReadables {
         public String text;
     }
 
-    private WSClient _wsClient;
-    private AppConfig _config;
+    private final WSClient _wsClient;
+    private final AppConfig _config;
 
     @Inject
     BiasCorrector(AppConfig config, WSClient wsClient) {
@@ -30,7 +30,7 @@ public class BiasCorrector implements MessageCorrector,WSBodyReadables {
     }
 
     @Override
-    public String correct(String input) {
+    public String getCorrection(String input) {
         var request = new Request();
         request.text = input;
 

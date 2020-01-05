@@ -39,4 +39,13 @@ public class HomeControllerTest extends WithApplication {
         assertEquals(OK, result.status());
     }
 
+    @Test
+    public void testHealthCheckPage() {
+        Http.RequestBuilder request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/bias-correct/v2/slack");
+
+        Result result = route(app, request);
+        assertEquals(OK, result.status());
+    }
 }

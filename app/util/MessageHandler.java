@@ -23,4 +23,8 @@ public class MessageHandler {
     public JsonNode toJson(String key, String messageKey) {
         return Json.toJson(Map.of(key, messages.at(messageKey)));
     }
+
+    public String get(String messageKey, Object... args) {
+        return messages.at(messageKey, args);
+    }
 }

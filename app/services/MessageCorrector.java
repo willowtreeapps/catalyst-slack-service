@@ -2,5 +2,5 @@ package services;
 
 public interface MessageCorrector {
 
-    String correct(String input);
+    String getCorrection(String input);
 }

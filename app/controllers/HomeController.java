@@ -8,7 +8,7 @@ import play.mvc.Result;
  */
 public class HomeController extends Controller {
 
-    public Result healthCheck() {
+    public Result index() {
         return ok();
     }
 
