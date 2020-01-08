@@ -1,5 +1,6 @@
 package controllers;
 
+import domain.Event;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -19,6 +20,7 @@ import static play.inject.Bindings.bind;
 import static play.test.Helpers.*;
 
 public class EventControllerTest extends WithApplication {
+    private static final String EVENTS_URI = "/bias-correct/v2/slack/events";
 
     @Override
     protected Application provideApplication() {
@@ -34,7 +36,7 @@ public class EventControllerTest extends WithApplication {
     public void testInvalidRequest() {
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events");
+                .uri(EVENTS_URI);
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -50,7 +52,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = "invalid_token";
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -66,7 +68,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = "valid_token_123";
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -83,7 +85,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "unsupported_request_type";
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -100,7 +102,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "url_verification";
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -118,7 +120,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.challenge = "valid_challenge_123";
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -136,7 +138,7 @@ public class EventControllerTest extends WithApplication {
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -151,12 +153,12 @@ public class EventControllerTest extends WithApplication {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
-        eventRequest.event = new EventController.Event();
+        eventRequest.event = new Event();
         eventRequest.event.text = "";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
@@ -169,14 +171,14 @@ public class EventControllerTest extends WithApplication {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
-        eventRequest.event = new EventController.Event();
+        eventRequest.event = new Event();
         eventRequest.event.text = "bot message";
         eventRequest.event.bot_id = "valid_bot_id";
         eventRequest.event.username = "valid_bot_username";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
 
@@ -185,7 +187,7 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testNonBiasedMessage() {
-        var event = new EventController.Event();
+        var event = new Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
@@ -196,7 +198,7 @@ public class EventControllerTest extends WithApplication {
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         assertEquals(OK, result.status());
@@ -204,7 +206,7 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testBiasCorrected() {
-        var event = new EventController.Event();
+        var event = new Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
@@ -215,7 +217,7 @@ public class EventControllerTest extends WithApplication {
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
                 .method(POST)
-                .uri("/bias-correct/v2/slack/events").bodyJson(Json.toJson(eventRequest));
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();

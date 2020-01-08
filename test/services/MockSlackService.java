@@ -1,17 +1,18 @@
 package services;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import domain.Event;
+import domain.Message;
 import util.MessageHandler;
 
 public class MockSlackService implements AppService {
 
     @Override
-    public JsonNode generateSuggestion(MessageHandler msg, String fallback, String channel, String user, String authToken, String correction) {
+    public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
         return null;
     }
 
     @Override
-    public void postReply(JsonNode reply, String authToken) {
+    public void postReply(Message reply, String authToken) {
 
     }
 }

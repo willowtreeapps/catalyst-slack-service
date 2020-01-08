@@ -1,5 +1,6 @@
 package controllers;
 
+import domain.Event;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -20,23 +21,7 @@ public class EventController extends Controller {
         public String token;
         public String challenge;
         public String type;
-        public Event event;
-    }
-
-    //TODO: get from within event.blocks[{elements:[{}]]}]
-    public static class Event {
-        public String client_msg_id;
-        public String type;
-        public String subtype;
-        public String text;
-        public String user;
-        public String ts;
-        public String team;
-        public String username;
-        public String bot_id;
-        public String channel;
-        public String event_ts;
-        public String channel_type;
+        public Event event; //TODO: get from within event.blocks[{elements:[{}]]}]
     }
 
     private final AppConfig _config;
@@ -141,7 +126,7 @@ public class EventController extends Controller {
         }
 
         //TODO: check for team tokens as auth parameter? see original code for reference
-        var botReply = _slackService.generateSuggestion(messages, event.ts, event.channel, event.user, _config.getAppOauthToken(), correction );
+        var botReply = _slackService.generateSuggestion(messages, event, correction);
         _slackService.postReply(botReply, _config.getAppOauthToken());
     }
 }

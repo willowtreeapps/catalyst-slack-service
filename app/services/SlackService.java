@@ -1,6 +1,9 @@
 package services;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import domain.Action;
+import domain.Attachment;
+import domain.Event;
+import domain.Message;
 import play.Logger;
 import play.libs.Json;
 import play.libs.ws.WSBodyReadables;
@@ -10,58 +13,8 @@ import util.MessageHandler;
 
 import javax.inject.Inject;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class SlackService implements AppService, WSBodyReadables {
-
-    private static class Message {
-        public String ok = "true";
-        public String channel;
-        public String token;
-        public String user;
-        public String as_user = "false";
-        public String text;
-        public List<Attachment> attachments;
-
-        Message(String channel, String token, String user, String text, List<Attachment> attachments) {
-            this.channel = channel;
-            this.token = token;
-            this.user = user;
-            this.text = text;
-            this.attachments = attachments;
-        }
-    }
-
-    private static class Attachment {
-        public String fallback;
-        public String title;
-        public String callback_id;
-        public String attachment_type = "default";
-        public List<Action> actions;
-
-        Attachment(String fallback, String title, String callbackId, List<Action> actions) {
-            this.fallback = fallback;
-            this.title = title;
-            this.callback_id = callbackId;
-            this.actions = actions;
-        }
-    }
-
-    private static class Action {
-        public String name;
-        public String text;
-        public String type = "button";
-        public String value;
-        public String style; // optional?
-
-        Action(String name, String text, String value, String style) {
-            this.name = name;
-            this.text = text;
-            this.value = value;
-            this.style = style;
-        }
-    }
 
     private final WSClient _wsClient;
     private final AppConfig _config;
@@ -73,9 +26,8 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     @Override
-    public JsonNode generateSuggestion(
-            MessageHandler msg, String callbackId, String channel,
-            String user, String authToken, String correction) {
+    public Message generateSuggestion(
+            MessageHandler msg, Event event, String correction) {
 
         var actions = new LinkedList<Action>();
         actions.add(new Action(correction, msg.get("button.correct"), "yes", "primary"));
@@ -83,15 +35,16 @@ public class SlackService implements AppService, WSBodyReadables {
         actions.add(new Action(correction, msg.get("button.learn"), "learn_more", null));
 
         var attachments = new LinkedList<Attachment>();
-        attachments.add(new Attachment(msg.get("message.fallback"), msg.get("message.title"), callbackId, actions));
+        attachments.add(new Attachment(msg.get("message.fallback"), msg.get("message.title"), event.ts, actions));
 
-        var message = new Message(channel, authToken, user, msg.get("message.suggestion",correction), attachments);
+        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, msg.get("message.suggestion",correction), attachments);
 
-        return Json.toJson(message);
+        return message;
     }
 
     @Override
-    public void postReply(JsonNode reply, String authToken){
+    public void postReply(Message reply, String authToken){
+
         var request = _wsClient.url(_config.getPostUrl()).
                 setContentType("application/json").
                 addHeader("Authorization", String.format("Bearer %s", authToken));

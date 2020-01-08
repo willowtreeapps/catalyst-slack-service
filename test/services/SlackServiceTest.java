@@ -1,6 +1,7 @@
 package services;
 
-import io.jsonwebtoken.lang.Assert;
+import domain.Event;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import play.libs.ws.WSClient;
@@ -15,12 +16,16 @@ public class SlackServiceTest {
 
     @Test
     public void testGenerateSuggestion() {
+        Event event = new Event();
+
+        event.ts = "valid_callback_id";
+        event.channel = "valid_channel";
+        event.user = "USER123";
         SlackService service = new SlackService(config, wsClient);
         MessageHandler msg = new MessageHandler(Helpers.stubMessagesApi().preferred(Mockito.anyCollection()));
-        var reply = service.generateSuggestion(msg, "valid_callback_id", "valid_channel",
-                "USER123", "valid_auth_token", "she's so thoughtful");
+        var reply = service.generateSuggestion(msg, event, "she's so thoughtful");
 
-        Assert.hasText(reply.path("text").textValue());
+        Assert.assertEquals("message.suggestion", reply.text);
     }
 
     //TODO!
