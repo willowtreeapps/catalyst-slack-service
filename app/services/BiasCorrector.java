@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 import play.libs.ws.WSBodyReadables;
 import play.libs.ws.WSClient;
-import util.AppConfig;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.concurrent.ExecutionException;
 
 public class BiasCorrector implements MessageCorrector,WSBodyReadables {
@@ -21,12 +21,12 @@ public class BiasCorrector implements MessageCorrector,WSBodyReadables {
     }
 
     private final WSClient _wsClient;
-    private final AppConfig _config;
+    private final String _url;
 
     @Inject
-    BiasCorrector(AppConfig config, WSClient wsClient) {
+    BiasCorrector(@Named("BIAS_CORRECT_URL") String url, WSClient wsClient) {
         this._wsClient = wsClient;
-        this._config = config;
+        this._url = url;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class BiasCorrector implements MessageCorrector,WSBodyReadables {
         var request = new Request();
         request.text = input;
 
-        var jsonPromise = _wsClient.url(_config.getBiasCorrectUrl())
+        var jsonPromise = _wsClient.url(_url)
                 .setContentType("application/json")
                 .post(Json.toJson(request))
                 .thenApply(r -> r.getBody(json()));

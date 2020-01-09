@@ -22,6 +22,8 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
         SlackService service = new SlackService(config, wsClient);
+
+        //TODO: throwing an exception
         MessageHandler msg = new MessageHandler(Helpers.stubMessagesApi().preferred(Mockito.anyCollection()));
         var reply = service.generateSuggestion(msg, event, "she's so thoughtful");
 
