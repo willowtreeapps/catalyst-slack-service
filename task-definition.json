@@ -1,0 +1,46 @@
+{
+  "executionRoleArn": "arn:aws:iam::356223155086:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/catalyst-slack-taskdef-dev",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "protocol": "tcp",
+          "containerPort": 9000
+        },
+        {
+          "hostPort": 6379,
+          "protocol": "tcp",
+          "containerPort": 6379
+        }
+      ],
+      "cpu": 0,
+      "secrets": [
+        {
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:356223155086:secret:catalyst-bias-correct-dev-LM2GNq",
+          "name": "PLAY_SECRET_KEY"
+        },
+        {
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:356223155086:secret:catalyst-bias-correct-dev-LM2GNq",
+          "name": "SLACK_TOKEN"
+        }
+      ],
+      "memory": 512,
+      "image": "356223155086.dkr.ecr.us-east-1.amazonaws.com/catalyst-slack-service:latest",
+      "name": "slack-image"
+    }
+  ],
+  "taskRoleArn": "arn:aws:iam::356223155086:role/ecsTaskExecutionRole",
+  "family": "catalyst-slack-taskdef-dev",
+  "requiresCompatibilities": [
+    "EC2"
+  ]
+}
