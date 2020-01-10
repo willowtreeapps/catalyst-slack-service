@@ -1,9 +1,12 @@
 package services;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
 public class MockCorrector implements MessageCorrector {
 
     @Override
-    public String getCorrection(String input) {
-        return (input.equals("she's so quiet")) ? "she's so thoughtful" : "";
+    public CompletionStage<String> getCorrection(String input) {
+        return CompletableFuture.completedFuture(input.equals("she's so quiet") ? "she's so thoughtful" : "");
     }
 }

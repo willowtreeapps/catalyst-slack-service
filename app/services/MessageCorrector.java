@@ -1,6 +1,8 @@
 package services;
 
+import java.util.concurrent.CompletionStage;
+
 public interface MessageCorrector {
 
-    String getCorrection(String input);
+    CompletionStage<String> getCorrection(String input);
 }

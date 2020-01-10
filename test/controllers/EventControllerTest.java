@@ -24,7 +24,6 @@ public class EventControllerTest extends WithApplication {
 
     @Override
     protected Application provideApplication() {
-
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))

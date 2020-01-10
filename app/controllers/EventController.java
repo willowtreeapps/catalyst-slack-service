@@ -1,8 +1,10 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import domain.Event;
 import play.i18n.MessagesApi;
 import play.libs.Json;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -14,8 +16,14 @@ import util.MessageHandler;
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class EventController extends Controller {
+
+    public static class Response {
+        public boolean ok = true;
+    }
 
     public static class Request {
         public String token;
@@ -28,22 +36,34 @@ public class EventController extends Controller {
     private final MessagesApi _messagesApi;
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
+    private final HttpExecutionContext _ec;
+
+    private final JsonNode success = Json.toJson(new Response());
 
     @Inject
-    public EventController(AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector, AppService slackService) {
+    public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector, AppService slackService) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
+        this._ec = ec;
     }
 
-    public Result handle(Http.Request httpRequest) {
+    private static CompletionStage<Result> resultBadRequest(MessageHandler messages, String error) {
+        return CompletableFuture.completedFuture(badRequest(messages.error(error)));
+    }
+
+    private static CompletionStage<Result> resultOk(JsonNode json) {
+        return CompletableFuture.completedFuture(ok(json));
+    }
+
+    public CompletionStage<Result> handle(Http.Request httpRequest) {
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         var optionalRequest = httpRequest.body().parseJson(Request.class);
         var error = validateRequest(optionalRequest);
 
         if (error != null) {
-            return badRequest(messages.error(error));
+            return resultBadRequest(messages, error);
         }
 
         var eventRequest = optionalRequest.get();
@@ -53,7 +73,7 @@ public class EventController extends Controller {
             return handleEventCallback(messages, eventRequest.event);
         }
 
-        return badRequest(messages.error("error.unsupported.type"));
+        return resultBadRequest(messages, "error.unsupported.type");
     }
 
     private String validateRequest(final Optional<Request> request) {
@@ -78,12 +98,12 @@ public class EventController extends Controller {
      * @param challenge
      * @return
      */
-    private Result handleURLVerification(final MessageHandler messages, final String challenge) {
+    private CompletionStage<Result> handleURLVerification(final MessageHandler messages, final String challenge) {
         if (challenge == null) {
-            return badRequest(messages.error("error.missing.challenge"));
+            return resultBadRequest(messages, "error.missing.challenge");
         }
 
-        return ok(Json.toJson(Map.of("challenge", challenge)));
+        return resultOk(Json.toJson(Map.of("challenge", challenge)));
     }
 
     /**
@@ -92,9 +112,9 @@ public class EventController extends Controller {
      * @param event
      * @return
      */
-    private Result handleEventCallback(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleEventCallback(final MessageHandler messages, final Event event) {
         if (event == null) {
-            return badRequest(messages.error("error.invalid.event"));
+            return resultBadRequest(messages, "error.invalid.event");
         }
 
         var userName = event.username;
@@ -104,29 +124,30 @@ public class EventController extends Controller {
             userName != null && userName.equals(_config.getBotUserName());
 
         if (isBotMessage || event.user == null || event.text == null) {
-            return ok();
+            return resultOk(success);
         }
 
         if (event.subtype == null) {
             //TODO: handle help request direct im to slackbot
+            return handleUserMessage(messages, event);
+        } else {
             //TODO: handle channel_join
-            handleUserMessage(messages, event);
+            return resultOk(success);
         }
-
-        return ok(messages.toJson("ok", "true"));
     }
 
-    private void handleUserMessage(final MessageHandler messages, final Event event) {
-        if (event.team != null && event.channel != null) {
-            //TODO: update message counts
-        }
-        var correction = _biasCorrector.getCorrection(event.text);
-        if (correction.isEmpty()) {
-            return;
-        }
+    public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
+        CompletionStage<String> correctionResult = _biasCorrector.getCorrection(event.text);
+        CompletionStage<Result> result = correctionResult.thenComposeAsync(correction -> {
 
-        //TODO: check for team tokens as auth parameter? see original code for reference
-        var botReply = _slackService.generateSuggestion(messages, event, correction);
-        _slackService.postReply(botReply, _config.getAppOauthToken());
+            if (correction.isEmpty()) {
+                return CompletableFuture.supplyAsync(() -> ok(success), _ec.current());
+            } else {
+                return _slackService.postSuggestion(messages, event, correction)
+                        .thenApplyAsync(slackResponse -> ok(Json.toJson(slackResponse)), _ec.current());
+            }
+        }, _ec.current());
+
+        return result;
     }
 }

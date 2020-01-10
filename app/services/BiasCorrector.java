@@ -1,15 +1,15 @@
 package services;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
+import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSBodyReadables;
 import play.libs.ws.WSClient;
+import util.AppConfig;
 
 import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionStage;
 
-public class BiasCorrector implements MessageCorrector,WSBodyReadables {
+public class BiasCorrector implements MessageCorrector, WSBodyReadables {
     private static class Response {
         public String input;
         public String context;
@@ -18,34 +18,34 @@ public class BiasCorrector implements MessageCorrector,WSBodyReadables {
 
     private static class Request {
         public String text;
+
+        public Request(String text) {
+            this.text = text;
+        }
     }
 
+    private final HttpExecutionContext _ec;
     private final WSClient _wsClient;
-    private final String _url;
+    private final AppConfig _config;
 
     @Inject
-    BiasCorrector(@Named("BIAS_CORRECT_URL") String url, WSClient wsClient) {
+    BiasCorrector(HttpExecutionContext ec, AppConfig config, WSClient wsClient) {
+        this._ec = ec;
         this._wsClient = wsClient;
-        this._url = url;
+        this._config = config;
     }
 
-    @Override
-    public String getCorrection(String input) {
-        var request = new Request();
-        request.text = input;
+    public CompletionStage<String> getCorrection(String input) {
+        var bcInput = new Request(input);
 
-        var jsonPromise = _wsClient.url(_url)
-                .setContentType("application/json")
-                .post(Json.toJson(request))
-                .thenApply(r -> r.getBody(json()));
+        return _wsClient.url(_config.getBiasCorrectUrl())
+            .setContentType("application/json")
+            .post(Json.toJson(bcInput))
+            .thenApplyAsync(r -> {
+                var json = r.getBody(json());
+                var response = Json.fromJson(json, Response.class);
+                return !response.input.equals(response.correction) ? response.correction : "";
 
-        JsonNode response = null;
-        try {
-            response = jsonPromise.toCompletableFuture().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        return response != null ? Json.fromJson(response, Response.class).correction : "";
+            }, _ec.current());
     }
 }
