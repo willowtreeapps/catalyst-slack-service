@@ -40,8 +40,14 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 12
+
       - name: Setup sbt
         run: sbt --version && sbt --version
+
+      - name: Run tests
+        run: sbt test
+
+
       - name: Build and publish docker image
         id: build-image
         env:
