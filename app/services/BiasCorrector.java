@@ -1,5 +1,6 @@
 package services;
 
+import domain.CorrectorResponse;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSBodyReadables;
@@ -10,11 +11,6 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
 public class BiasCorrector implements MessageCorrector, WSBodyReadables {
-    private static class Response {
-        public String input;
-        public String context;
-        public String correction;
-    }
 
     private static class Request {
         public String text;
@@ -38,14 +34,15 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
     public CompletionStage<String> getCorrection(String input) {
         var bcInput = new Request(input);
 
-        return _wsClient.url(_config.getBiasCorrectUrl())
-            .setContentType("application/json")
-            .post(Json.toJson(bcInput))
-            .thenApplyAsync(r -> {
-                var json = r.getBody(json());
-                var response = Json.fromJson(json, Response.class);
-                return !response.input.equals(response.correction) ? response.correction : "";
+        var request = _wsClient.url(_config.getBiasCorrectUrl())
+                .setContentType("application/json");
 
+        var jsonPromise = request.post(Json.toJson(bcInput));
+
+        return jsonPromise.thenApplyAsync(r -> {
+            var response = Json.fromJson(r.getBody(json()), CorrectorResponse.class);
+            return response.input != null && !response.input.equals((response.correction)) ?
+                response.correction : "";
             }, _ec.current());
     }
 }
