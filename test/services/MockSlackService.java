@@ -11,7 +11,11 @@ import java.util.concurrent.CompletionStage;
 public class MockSlackService implements AppService {
     @Override
     public CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s) {
-        return CompletableFuture.completedFuture(new SlackResponse());
+        SlackResponse response = new SlackResponse();
+        response.ok = true;
+        response.message_ts = "12345.67890";
+        response.warning = "";
+        return CompletableFuture.completedFuture(response);
     }
 
     @Override

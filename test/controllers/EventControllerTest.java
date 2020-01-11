@@ -1,6 +1,7 @@
 package controllers;
 
 import domain.Event;
+import domain.SlackResponse;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -160,7 +161,6 @@ public class EventControllerTest extends WithApplication {
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         Result result = route(app, httpRequest);
-        var body = contentAsBytes(result).toArray();
 
         assertEquals(OK, result.status());
     }
@@ -220,8 +220,9 @@ public class EventControllerTest extends WithApplication {
 
         Result result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
-        var suggestedCorrection = Json.parse(body);
+        var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
 
+        assertEquals(slackResponse.message_ts, "12345.67890");
         assertEquals(OK, result.status());
     }
 }

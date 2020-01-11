@@ -21,24 +21,20 @@ import java.util.concurrent.CompletionStage;
 
 public class EventController extends Controller {
 
-    public static class Response {
-        public boolean ok = true;
-    }
-
     public static class Request {
         public String token;
         public String challenge;
         public String type;
-        public Event event; //TODO: get from within event.blocks[{elements:[{}]]}]
+        public Event event;
     }
+
+    private static final JsonNode SUCCESS = Json.toJson(Map.of("ok", Boolean.valueOf(true)));
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
-
-    private final JsonNode success = Json.toJson(new Response());
 
     @Inject
     public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector, AppService slackService) {
@@ -124,7 +120,7 @@ public class EventController extends Controller {
             userName != null && userName.equals(_config.getBotUserName());
 
         if (isBotMessage || event.user == null || event.text == null) {
-            return resultOk(success);
+            return resultOk(SUCCESS);
         }
 
         if (event.subtype == null) {
@@ -132,22 +128,22 @@ public class EventController extends Controller {
             return handleUserMessage(messages, event);
         } else {
             //TODO: handle channel_join
-            return resultOk(success);
+            return resultOk(SUCCESS);
         }
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
-        CompletionStage<String> correctionResult = _biasCorrector.getCorrection(event.text);
-        CompletionStage<Result> result = correctionResult.thenComposeAsync(correction -> {
+        CompletionStage<String> correctorResult = _biasCorrector.getCorrection(event.text);
+        CompletionStage<Result> slackResult = correctorResult.thenComposeAsync(correction -> {
 
             if (correction.isEmpty()) {
-                return CompletableFuture.supplyAsync(() -> ok(success), _ec.current());
+                return CompletableFuture.completedFuture(ok(SUCCESS));
             } else {
                 return _slackService.postSuggestion(messages, event, correction)
                         .thenApplyAsync(slackResponse -> ok(Json.toJson(slackResponse)), _ec.current());
             }
         }, _ec.current());
 
-        return result;
+        return slackResult;
     }
 }
