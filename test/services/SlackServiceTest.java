@@ -45,7 +45,7 @@ public class SlackServiceTest {
 
         var response = new SlackResponse();
         response.ok = true;
-        response.message_ts = "12345.67890";
+        response.messageTs = "12345.67890";
         response.warning = "";
 
         server = Server.forRouter( (components) -> RoutingDsl
@@ -93,6 +93,6 @@ public class SlackServiceTest {
                 .get(10, TimeUnit.SECONDS);
 
         Assert.assertEquals(true, response.ok);
-        Assert.assertEquals("12345.67890", response.message_ts);
+        Assert.assertEquals("12345.67890", response.messageTs);
     }
 }

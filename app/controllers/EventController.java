@@ -114,7 +114,7 @@ public class EventController extends Controller {
         }
 
         var userName = event.username;
-        var botId = event.bot_id;
+        var botId = event.botId;
 
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());

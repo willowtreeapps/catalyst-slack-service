@@ -13,7 +13,7 @@ public class MockSlackService implements AppService {
     public CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s) {
         SlackResponse response = new SlackResponse();
         response.ok = true;
-        response.message_ts = "12345.67890";
+        response.messageTs = "12345.67890";
         response.warning = "";
         return CompletableFuture.completedFuture(response);
     }

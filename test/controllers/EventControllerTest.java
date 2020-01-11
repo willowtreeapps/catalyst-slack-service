@@ -172,7 +172,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "event_callback";
         eventRequest.event = new Event();
         eventRequest.event.text = "bot message";
-        eventRequest.event.bot_id = "valid_bot_id";
+        eventRequest.event.botId = "valid_bot_id";
         eventRequest.event.username = "valid_bot_username";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
@@ -222,7 +222,7 @@ public class EventControllerTest extends WithApplication {
         var body = contentAsBytes(result).toArray();
         var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
 
-        assertEquals(slackResponse.message_ts, "12345.67890");
+        assertEquals(slackResponse.messageTs, "12345.67890");
         assertEquals(OK, result.status());
     }
 }

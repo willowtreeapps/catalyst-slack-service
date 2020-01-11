@@ -1,5 +1,7 @@
 package domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class Message {
@@ -7,7 +9,8 @@ public class Message {
     public String channel;
     public String token;
     public String user;
-    public String as_user = "false";
+    @JsonProperty("as_user")
+    public String asUser = "false";
     public String text;
     public List<Attachment> attachments;
 

@@ -5,7 +5,7 @@ public class Action {
     public String text;
     public String type = "button";
     public String value;
-    public String style; // optional?
+    public String style;
 
     public Action(String name, String text, String value, String style) {
         this.name = name;
