@@ -24,4 +24,3 @@ dockerCommands ++= Seq(
   Cmd("USER", "root"),
   ExecCmd("RUN", "apk", "add", "--no-cache", "bash"),
 )
-
