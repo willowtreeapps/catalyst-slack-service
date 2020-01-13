@@ -8,4 +8,5 @@ public interface AppConfig {
     String getPostUrl();
     String getAppOauthToken();
     String getBotOauthToken();
+    String getSigningSecret();
 }

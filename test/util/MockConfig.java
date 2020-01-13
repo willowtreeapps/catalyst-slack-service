@@ -9,4 +9,5 @@ public class MockConfig implements AppConfig {
     public String getPostUrl() { return "/api/chat.postEphemeral"; }
     public String getAppOauthToken() {return "valid_app_oauth_token"; }
     public String getBotOauthToken() {return "valid_bot_oauth_token"; }
+    public String getSigningSecret() {return "signing_secret"; }
 }

@@ -12,6 +12,9 @@ libraryDependencies ++= Seq(
   javaWs
 )
 
+// https://mvnrepository.com/artifact/commons-codec/commons-codec
+libraryDependencies += "commons-codec" % "commons-codec" % "1.13"
+
 PlayKeys.devSettings := Seq("play.server.http.port" -> "4542")
 
 import com.typesafe.sbt.packager.docker._

@@ -59,7 +59,7 @@ public class EventControllerTest extends WithApplication {
         var error = Json.parse(body).path("error").textValue();
 
         assertEquals(BAD_REQUEST, result.status());
-        assertEquals("Invalid slack token", error);
+        assertEquals("Request not verified", error);
     }
 
     @Test
@@ -215,6 +215,31 @@ public class EventControllerTest extends WithApplication {
         event.user = "USER123";
 
         Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        Result result = route(app, httpRequest);
+        var body = contentAsBytes(result).toArray();
+        var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
+
+        assertEquals(slackResponse.messageTs, "12345.67890");
+        assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testSigningSecret() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.text = "she's so quiet";
+        event.user = "USER123";
+
+        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+                .header("X-Slack-Signature", "v0=05c3b77a88fd12c192f6010f3eb70dcb58eb66ad96422e79ca4d2763b73d112c")
+                .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 

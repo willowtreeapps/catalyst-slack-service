@@ -12,10 +12,10 @@ import services.AppService;
 import services.MessageCorrector;
 import util.AppConfig;
 import util.MessageHandler;
+import util.RequestVerifier;
 
 import javax.inject.Inject;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -55,14 +55,13 @@ public class EventController extends Controller {
 
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-        var optionalRequest = httpRequest.body().parseJson(Request.class);
-        var error = validateRequest(optionalRequest);
+        var error = validateRequest(httpRequest);
 
         if (error != null) {
             return resultBadRequest(messages, error);
         }
 
-        var eventRequest = optionalRequest.get();
+        var eventRequest = httpRequest.body().parseJson(Request.class).get();
         if (eventRequest.type.equals("url_verification")) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals("event_callback")) {
@@ -72,13 +71,15 @@ public class EventController extends Controller {
         return resultBadRequest(messages, "error.unsupported.type");
     }
 
-    private String validateRequest(final Optional<Request> request) {
+    private String validateRequest(final Http.Request httpRequest) {
+        var request = httpRequest.body().parseJson(Request.class);
         if (request.isEmpty()) {
             return "error.invalid.request";
         }
 
-        if (request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent()) {
-            return "error.invalid.token";
+        if (!RequestVerifier.verified(_config, httpRequest) &&
+            (request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent())) {
+            return "error.request.not.verified";
         }
 
         if (request.filter(r -> r.type == null).isPresent()) {
