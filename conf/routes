@@ -3,8 +3,5 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /bias-correct/v2/slack/learnmore    controllers.HomeController.learnMore
-GET     /bias-correct/v2/slack/success      controllers.HomeController.success
+GET     /bias-correct/v2/slack              controllers.HomeController.index
 POST    /bias-correct/v2/slack/events       controllers.EventController.handle(request: Request)
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)

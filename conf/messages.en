@@ -3,3 +3,12 @@ error.invalid.token = Invalid slack token
 error.missing.type = Missing request type
 error.missing.challenge = Missing challenge parameter
 error.unsupported.type = Unsupported request type
+error.invalid.event = Invalid event body
+
+message.suggestion = Did you mean "{0}"?
+message.title = Before you hit send, think about it... if she was a he, would you have chosen that word?
+message.fallback = Darn! I wish this worked!
+
+button.correct = Bias Correct
+button.no = No
+button.learn = Learn More
