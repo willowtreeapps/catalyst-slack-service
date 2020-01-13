@@ -20,23 +20,12 @@ public class HomeControllerTest extends WithApplication {
     }
 
     @Test
-    public void testSuccessPage() {
+    public void testHealthCheckPage() {
         Http.RequestBuilder request = new Http.RequestBuilder()
                 .method(GET)
-                .uri("/bias-correct/v2/slack/success");
+                .uri("/bias-correct/v2/slack");
 
         Result result = route(app, request);
         assertEquals(OK, result.status());
     }
-
-    @Test
-    public void testLearnMorePage() {
-        Http.RequestBuilder request = new Http.RequestBuilder()
-                .method(GET)
-                .uri("/bias-correct/v2/slack/learnmore");
-
-        Result result = route(app, request);
-        assertEquals(OK, result.status());
-    }
-
 }

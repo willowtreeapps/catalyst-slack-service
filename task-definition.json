@@ -31,6 +31,10 @@
         {
           "valueFrom": "arn:aws:secretsmanager:***REMOVED***:***REMOVED***:secret:catalyst-bias-correct-dev-LM2GNq",
           "name": "SLACK_TOKEN"
+        },
+        {
+          "valueFrom": "arn:aws:secretsmanager:***REMOVED***:***REMOVED***:secret:catalyst-bias-correct-dev-LM2GNq",
+          "name": "BIAS_CORRECT_URL"
         }
       ],
       "memory": 512,
