@@ -6,6 +6,8 @@ import play.mvc.Http;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public class RequestVerifier {
 
@@ -20,24 +22,18 @@ public class RequestVerifier {
             return false;
         }
 
-        var body = "";
-        try {
-            body = new String(request.body().asBytes().toArray(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
         var secret = config.getSigningSecret();
-        var baseString = String.join(":", "v0", timestamp.get(), body );
         var secretKey = new SecretKeySpec(secret.getBytes(), ALGORITHM);
 
         try {
+            var body = new String(request.body().asBytes().toArray(), "UTF-8");
+            var baseString = String.join(":", "v0", timestamp.get(), body );
             var sha256_HMAC = Mac.getInstance(ALGORITHM);
             sha256_HMAC.init(secretKey);
             var hash = "v0=" + Hex.encodeHexString(sha256_HMAC.doFinal(baseString.getBytes()));
 
-            return hash.equals(slackSignature) ? true : false;
-        } catch (Exception e) {
+            return hash.equals(slackSignature.get()) ? true : false;
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
         return false;
