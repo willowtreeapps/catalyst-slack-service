@@ -77,10 +77,15 @@ public class EventController extends Controller {
             return "error.invalid.request";
         }
 
-        // token does not exist in the request or not equal to SLACK_TOKEN environment variable
-        var isTokenInvalid = request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent();
-        if (!RequestVerifier.verified(_config, httpRequest) && isTokenInvalid) {
+        var headersExist = RequestVerifier.headersExist(httpRequest);
+        if (headersExist && !RequestVerifier.verified(_config.getSigningSecret(), httpRequest)) {
             return "error.request.not.verified";
+        }
+
+        // token does not exist in the request or is not equal to SLACK_TOKEN environment variable
+        var isTokenInvalid = request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent();
+        if (!headersExist && isTokenInvalid) {
+            return "error.invalid.token";
         }
 
         if (request.filter(r -> r.type == null).isPresent()) {
