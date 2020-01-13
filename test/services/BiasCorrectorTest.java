@@ -2,6 +2,7 @@ package services;
 
 import domain.CorrectorResponse;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import play.libs.Json;
@@ -22,11 +23,13 @@ public class BiasCorrectorTest {
     private Server server;
     private MockConfig config;
     private BiasCorrector service;
+
     @Test
     public void testCorrect() throws Exception {
-        var r = service.getCorrection("she's fabulous");
-        var x = r.toCompletableFuture().get(10, TimeUnit.SECONDS);
-        System.out.println(x);
+        var correction = service.getCorrection("she's fabulous")
+                .toCompletableFuture().get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals("", correction);
     }
 
     @Before
