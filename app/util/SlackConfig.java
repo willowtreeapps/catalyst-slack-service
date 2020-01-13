@@ -20,4 +20,5 @@ public class SlackConfig implements AppConfig {
     public String getPostUrl() {return _config.getString("post_url"); }
     public String getAppOauthToken() {return _config.getString("app_oauth_token"); }
     public String getBotOauthToken() {return _config.getString("bot_oauth_token"); }
+    public String getSigningSecret() {return _config.getString("signing_secret"); }
 }
