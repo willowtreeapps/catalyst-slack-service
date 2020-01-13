@@ -77,8 +77,9 @@ public class EventController extends Controller {
             return "error.invalid.request";
         }
 
-        if (!RequestVerifier.verified(_config, httpRequest) &&
-            (request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent())) {
+        // token does not exist in the request or not equal to SLACK_TOKEN environment variable
+        var isTokenInvalid = request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent();
+        if (!RequestVerifier.verified(_config, httpRequest) && isTokenInvalid) {
             return "error.request.not.verified";
         }
 

@@ -13,6 +13,13 @@ public class RequestVerifier {
 
     private static String ALGORITHM = "HmacSHA256";
 
+    /**
+     * Compares the header value of X-Slack-Signature with the hash value of the X-Slack-Request-Timestamp
+     * and the request body, using the SLACK_SIGNING_SECRET as the secret key
+     * @param config
+     * @param request
+     * @return
+     */
     public static boolean verified(AppConfig config, Http.Request request) {
 
         var slackSignature = request.header("X-Slack-Signature");
