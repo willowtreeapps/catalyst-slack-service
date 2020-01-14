@@ -15,4 +15,8 @@ public interface AppService {
     Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction);
 
     CompletionStage<AuthResponse> getAuth(String requestCode);
+
+    CompletionStage<SlackResponse> postChannelJoinMessage(final MessageHandler messages, final Event event);
+
+    Message generateChannelJoinMessage(MessageHandler msg, Event event);
 }

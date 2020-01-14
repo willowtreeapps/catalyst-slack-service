@@ -35,7 +35,6 @@ public class AuthController extends Controller {
      */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var requestCode = httpRequest.queryString("code");
-        // send a get request to Slack with the code to get token for authed user
 
         if (requestCode.isEmpty()) {
             var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
@@ -44,6 +43,7 @@ public class AuthController extends Controller {
                     "error", messages.get("error.missing.code")))));
         }
 
+        // send a get request to Slack with the code to get token for authed user
         return _service.getAuth(requestCode.get()).thenComposeAsync( response -> {
             if (response.error != null || response.teamId == null || response.userId == null || response.userToken == null) {
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
@@ -62,6 +62,6 @@ public class AuthController extends Controller {
 
     public Result signin() {
         // TODO: verify if this is the right url
-        return found(_config.getAppOauthUrl());
+        return found(_config.getAppSigninUrl());
     }
 }

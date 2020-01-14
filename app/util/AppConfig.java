@@ -5,14 +5,16 @@ public interface AppConfig {
     String getBiasCorrectUrl();
     String getBotId();
     String getBotUserName();
-    String getPostUrl();
+    String getPostMessageUrl();
+    String getPostEphemeralUrl();
     String getAppOauthToken();
     String getBotOauthToken();
     String getSigningSecret();
-    String getOauthUrl();
+    String getLearnMoreUrl();
     String getClientId();
     String getClientSecret();
-    String getAppOauthUrl();
+    String getAppSigninUrl();
     String getRedisHost();
     int getRedisPort();
+    String getOauthUrl();
 }

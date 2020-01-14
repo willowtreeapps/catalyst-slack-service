@@ -124,6 +124,9 @@ public class EventController extends Controller {
             return resultBadRequest(messages, "error.invalid.event");
         }
 
+        //TODO: remove
+        System.out.println("event captured --> " + Json.toJson(event));
+        var result = resultOk(SUCCESS);
         var userName = event.username;
         var botId = event.botId;
 
@@ -131,31 +134,40 @@ public class EventController extends Controller {
             userName != null && userName.equals(_config.getBotUserName());
 
         if (isBotMessage || event.user == null || event.text == null) {
-            return resultOk(SUCCESS);
+            return result;
         }
 
         if (event.subtype == null) {
             //TODO: handle help request direct im to slackbot
-            return handleUserMessage(messages, event);
-        } else {
-            //TODO: handle channel_join
-            return resultOk(SUCCESS);
+            result = handleUserMessage(messages, event);
+        } else if (event.subtype.equals("channel_join")) {
+            result = handleChannelJoin(messages, event);
         }
+
+        return result;
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
         _db.updateMessageCounts(event.team, event.channel);
-        CompletionStage<String> correctorResult = _biasCorrector.getCorrection(event.text);
-        CompletionStage<Result> slackResult = correctorResult.thenComposeAsync(correction -> {
+        var correctorResult = _biasCorrector.getCorrection(event.text);
+
+        return correctorResult.thenComposeAsync(correction -> {
 
             if (correction.isEmpty()) {
                 return CompletableFuture.completedFuture(ok(SUCCESS));
-            } else {
-                return _slackService.postSuggestion(messages, event, correction)
-                        .thenApplyAsync(slackResponse -> ok(Json.toJson(slackResponse)), _ec.current());
             }
-        }, _ec.current());
 
-        return slackResult;
+            return _slackService.postSuggestion(messages, event, correction)
+                        .thenApplyAsync(slackResponse ->
+                            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
+                        , _ec.current());
+        }, _ec.current());
+    }
+
+    public CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
+
+        return _slackService.postChannelJoinMessage(messages, event).thenApplyAsync(slackResponse ->
+            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
+        , _ec.current());
     }
 }

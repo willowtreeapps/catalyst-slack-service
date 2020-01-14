@@ -50,7 +50,7 @@ public class SlackServiceTest {
 
         server = Server.forRouter( (components) -> RoutingDsl
                 .fromComponents(components)
-                .POST(config.getPostUrl())
+                .POST(config.getPostEphemeralUrl())
                 .routingTo( request ->
                         ok(Json.toJson(response))
                 )

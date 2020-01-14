@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class Message {
-    public String ok = "true";
+    public boolean ok = true;
     public String channel;
     public String token;
     public String user;

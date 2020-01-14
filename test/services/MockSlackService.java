@@ -28,4 +28,14 @@ public class MockSlackService implements AppService {
     public CompletionStage<AuthResponse> getAuth(String requestCode) {
         return null;
     }
+
+    @Override
+    public CompletionStage<SlackResponse> postChannelJoinMessage(MessageHandler messages, Event event) {
+        return null;
+    }
+
+    @Override
+    public Message generateChannelJoinMessage(MessageHandler msg, Event event) {
+        return null;
+    }
 }
