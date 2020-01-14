@@ -9,7 +9,6 @@ import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Json;
 import play.mvc.Http;
-import play.mvc.Result;
 import play.test.WithApplication;
 import services.AppService;
 import services.MessageCorrector;
@@ -37,11 +36,11 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testInvalidRequest() {
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI);
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -53,11 +52,11 @@ public class EventControllerTest extends WithApplication {
     public void testInvalidToken() {
         var eventRequest = new EventController.Request();
         eventRequest.token = "invalid_token";
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -69,11 +68,11 @@ public class EventControllerTest extends WithApplication {
     public void testMissingRequestType() {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -86,11 +85,11 @@ public class EventControllerTest extends WithApplication {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "unsupported_request_type";
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -103,11 +102,11 @@ public class EventControllerTest extends WithApplication {
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";
         eventRequest.type = "url_verification";
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -121,11 +120,11 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = "valid_token_123";
         eventRequest.type = "url_verification";
         eventRequest.challenge = "valid_challenge_123";
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var challenge = Json.parse(body).path("challenge").textValue();
 
@@ -139,11 +138,11 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
@@ -157,13 +156,14 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = "valid_token_123";
         eventRequest.type = "event_callback";
         eventRequest.event = new Event();
+        eventRequest.event.type = "message";
         eventRequest.event.text = "";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
 
         assertEquals(OK, result.status());
     }
@@ -178,11 +178,11 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.botId = "valid_bot_id";
         eventRequest.event.username = "valid_bot_username";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
 
         assertEquals(OK, result.status());
     }
@@ -195,14 +195,15 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "event_callback";
         eventRequest.event = event;
 
+        event.type = "message";
         event.text = "text";
         event.user = "USER123";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         assertEquals(OK, result.status());
     }
 
@@ -214,14 +215,15 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "event_callback";
         eventRequest.event = event;
 
+        event.type = "message";
         event.text = "she's so quiet";
         event.user = "USER123";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
+        var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
 
@@ -237,16 +239,17 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "event_callback";
         eventRequest.event = event;
 
+        event.type = "message";
         event.text = "she's so quiet";
         event.user = "USER123";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=05c3b77a88fd12c192f6010f3eb70dcb58eb66ad96422e79ca4d2763b73d112c")
+        var httpRequest = new Http.RequestBuilder()
+                .header("X-Slack-Signature", "v0=53322ed06395d118dd3e25e58eae762e50f6478f27d03135bb4bebf501173c06")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
 
@@ -262,20 +265,65 @@ public class EventControllerTest extends WithApplication {
         eventRequest.type = "event_callback";
         eventRequest.event = event;
 
+        event.type = "message";
         event.text = "unverified message";
         event.user = "USER123";
 
-        Http.RequestBuilder httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=05c3b77a88fd12c192f6010f3eb70dcb58eb66ad96422e79ca4d2763b73d112c")
+        var httpRequest = new Http.RequestBuilder()
+                .header("X-Slack-Signature", "v0=53322ed06395d118dd3e25e58eae762e50f6478f27d03135bb4bebf501173c06")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
-        Result result = route(app, httpRequest);
+        var result = route(app, httpRequest);
         var body = contentAsBytes(result).toArray();
         var error = Json.parse(body).path("error").textValue();
 
         assertEquals(BAD_REQUEST, result.status());
         assertEquals("Request not verified", error);
+    }
+
+    @Test
+    public void testChannelJoinFailed() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.text = "invalid";
+        event.user = "USER123";
+        event.type = "message";
+        event.subtype = "channel_join";
+        event.channel = "valid_channel";
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        assertEquals(BAD_REQUEST, result.status());
+    }
+
+    @Test
+    public void testChannelJoinSuccessful() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.text = "<@USER123> has joined the channel";
+        event.user = "USER123";
+        event.type = "message";
+        event.subtype = "channel_join";
+        event.channel = "valid_channel";
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        assertEquals(OK, result.status());
     }
 }

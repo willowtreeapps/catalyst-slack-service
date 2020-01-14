@@ -124,8 +124,6 @@ public class EventController extends Controller {
             return resultBadRequest(messages, "error.invalid.event");
         }
 
-        //TODO: remove
-        System.out.println("event captured --> " + Json.toJson(event));
         var result = resultOk(SUCCESS);
         var userName = event.username;
         var botId = event.botId;
@@ -133,7 +131,7 @@ public class EventController extends Controller {
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        if (isBotMessage || event.user == null || event.text == null) {
+        if (isBotMessage || event.user == null || event.text == null || event.type == null || !event.type.equals("message")) {
             return result;
         }
 

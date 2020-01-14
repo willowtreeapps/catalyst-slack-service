@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 public class RedisDbManager implements DbManager {
 
-    private JedisPool _jedisPool;
+    protected JedisPool _jedisPool;
     private static final DateTimeFormatter DATE_FORMATTTER = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static final String USER_TOKENS = "user_tokens";
 
@@ -22,6 +22,11 @@ public class RedisDbManager implements DbManager {
 
     @Override
     public void addUserToken(String teamId, String userId, String token) {
+        if (teamId == null || userId == null || token == null) {
+            //TODO: log
+            return;
+        }
+
         try (Jedis jedis = _jedisPool.getResource()) {
             jedis.hset( USER_TOKENS, format(teamId, userId), token);
         }
@@ -45,14 +50,14 @@ public class RedisDbManager implements DbManager {
     }
 
     private void updateCounts(String teamId, String channelId, String prefix) {
-        String dayKey = today();
+        var dayKey = today();
         try (Jedis jedis = _jedisPool.getResource()) {
-            jedis.hincrBy( format(prefix, "total_team_messages"), teamId,1L );
-            jedis.hincrBy( format(prefix, "total_channel_messages"), format(teamId, channelId),1L );
-            jedis.hincrBy( format(prefix, "total_team_daily_messages"), format(teamId, dayKey), 1L );
-            jedis.hincrBy( format(prefix, "total_channel_daily_messages"), String.format("%s_%s_%s", teamId, channelId, dayKey), 1L );
-            jedis.hincrBy( format(prefix, "total_daily_messages"), format(teamId, dayKey), 1L );
-            jedis.incrBy( format(prefix, "total_messages"), 1L );
+            jedis.hincrBy( format(prefix, "team_messages"), teamId,1L );
+            jedis.hincrBy( format(prefix, "channel_messages"), format(teamId, channelId),1L );
+            jedis.hincrBy( format(prefix, "team_daily_messages"), format(teamId, dayKey), 1L );
+            jedis.hincrBy( format(prefix, "channel_daily_messages"), String.format("%s_%s_%s", teamId, channelId, dayKey), 1L );
+            jedis.hincrBy( format(prefix, "daily_messages"), format(teamId, dayKey), 1L );
+            jedis.incrBy( format(prefix, "messages"), 1L );
         }
     }
 

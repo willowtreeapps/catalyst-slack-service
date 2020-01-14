@@ -81,7 +81,7 @@ public class SlackService implements AppService, WSBodyReadables {
         var botReply = generateChannelJoinMessage(messages, event);
 
         // if user is null, the app was added to the channel
-        String url = (botReply.user == null) ? _config.getPostMessageUrl() : _config.getPostEphemeralUrl();
+        var url = (botReply.user == null) ? _config.getPostMessageUrl() : _config.getPostEphemeralUrl();
         return postReply(url, botReply, _config.getAppOauthToken());
     }
 

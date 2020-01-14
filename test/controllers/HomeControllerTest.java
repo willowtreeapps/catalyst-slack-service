@@ -6,7 +6,6 @@ import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http;
-import play.mvc.Result;
 import play.test.WithApplication;
 import services.AppService;
 import services.MessageCorrector;
@@ -16,10 +15,10 @@ import util.AppConfig;
 import util.MockConfig;
 
 import static org.junit.Assert.assertEquals;
+import static play.inject.Bindings.bind;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.GET;
 import static play.test.Helpers.route;
-import static play.inject.Bindings.bind;
 
 public class HomeControllerTest extends WithApplication {
 
@@ -35,11 +34,11 @@ public class HomeControllerTest extends WithApplication {
 
     @Test
     public void testHealthCheckPage() {
-        Http.RequestBuilder request = new Http.RequestBuilder()
+        var request = new Http.RequestBuilder()
                 .method(GET)
                 .uri("/bias-correct/v2/slack");
 
-        Result result = route(app, request);
+        var result = route(app, request);
         assertEquals(OK, result.status());
     }
 }

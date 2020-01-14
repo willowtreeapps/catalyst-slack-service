@@ -11,11 +11,13 @@ libraryDependencies += guice
 libraryDependencies ++= Seq(
   javaWs
 )
-// https://mvnrepository.com/artifact/redis.clients/jedis
-libraryDependencies += "redis.clients" % "jedis" % "3.2.0"
 
 // https://mvnrepository.com/artifact/commons-codec/commons-codec
 libraryDependencies += "commons-codec" % "commons-codec" % "1.13"
+// https://mvnrepository.com/artifact/redis.clients/jedis
+libraryDependencies += "redis.clients" % "jedis" % "3.2.0"
+// https://mvnrepository.com/artifact/org.mockito/mockito-core
+libraryDependencies += "org.mockito" % "mockito-core" % "3.2.4" % Test
 
 PlayKeys.devSettings := Seq("play.server.http.port" -> "4542")
 

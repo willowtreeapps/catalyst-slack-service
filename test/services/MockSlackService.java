@@ -12,7 +12,7 @@ import java.util.concurrent.CompletionStage;
 public class MockSlackService implements AppService {
     @Override
     public CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s) {
-        SlackResponse response = new SlackResponse();
+        var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";
         response.warning = "";
@@ -26,12 +26,30 @@ public class MockSlackService implements AppService {
 
     @Override
     public CompletionStage<AuthResponse> getAuth(String requestCode) {
-        return null;
+        var authResponse = new AuthResponse();
+
+        if (requestCode.equals("invalid_request_1234")) {
+            authResponse.ok = false;
+            authResponse.error = "request code already used";
+        } else {
+            authResponse.ok = true;
+            authResponse.teamId = "TEAM234";
+            authResponse.userId = "USER123";
+            authResponse.userToken = "xoxp-token-123";
+        }
+
+        return CompletableFuture.completedFuture(authResponse);
     }
 
     @Override
     public CompletionStage<SlackResponse> postChannelJoinMessage(MessageHandler messages, Event event) {
-        return null;
+        var response = new SlackResponse();
+        response.ok = true;
+
+        if (event.text.equals("invalid")) {
+            response.ok = false;
+        }
+        return CompletableFuture.completedFuture(response);
     }
 
     @Override
