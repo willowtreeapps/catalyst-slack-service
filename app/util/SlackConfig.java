@@ -25,4 +25,6 @@ public class SlackConfig implements AppConfig {
     public String getClientId() {return _config.getString("client_id"); }
     public String getClientSecret() {return _config.getString("client_secret"); }
     public String getAppOauthUrl() {return _config.getString("app_oauth_url"); }
+    public String getRedisHost() {return _config.getString("redis_host"); }
+    public int getRedisPort() {return _config.getInt("redis_port"); }
 }

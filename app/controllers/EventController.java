@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import db.DbManager;
 import domain.Event;
 import play.i18n.MessagesApi;
 import play.libs.Json;
@@ -35,14 +36,17 @@ public class EventController extends Controller {
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
+    private final DbManager _db;
 
     @Inject
-    public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector, AppService slackService) {
+    public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
+                           MessageCorrector biasCorrector, AppService slackService, DbManager dbManager) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
+        this._db = dbManager;
     }
 
     private static CompletionStage<Result> resultBadRequest(MessageHandler messages, String error) {
@@ -140,6 +144,7 @@ public class EventController extends Controller {
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
+        _db.updateMessageCounts(event.team, event.channel);
         CompletionStage<String> correctorResult = _biasCorrector.getCorrection(event.text);
         CompletionStage<Result> slackResult = correctorResult.thenComposeAsync(correction -> {
 

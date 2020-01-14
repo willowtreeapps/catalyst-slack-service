@@ -14,4 +14,6 @@ public class MockConfig implements AppConfig {
     public String getClientId() {return "valid_client_id"; }
     public String getClientSecret() {return "valid_client_secret"; }
     public String getAppOauthUrl() {return"/oauth/authorize";}
+    public String getRedisHost() {return ""; }
+    public int getRedisPort() { return 0; }
 }

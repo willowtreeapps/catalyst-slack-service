@@ -13,4 +13,6 @@ public interface AppConfig {
     String getClientId();
     String getClientSecret();
     String getAppOauthUrl();
+    String getRedisHost();
+    int getRedisPort();
 }
