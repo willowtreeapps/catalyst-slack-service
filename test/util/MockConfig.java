@@ -10,4 +10,8 @@ public class MockConfig implements AppConfig {
     public String getAppOauthToken() {return "valid_app_oauth_token"; }
     public String getBotOauthToken() {return "valid_bot_oauth_token"; }
     public String getSigningSecret() {return "signing_secret"; }
+    public String getOauthUrl() {return "/api/oauth.access"; }
+    public String getClientId() {return "valid_client_id"; }
+    public String getClientSecret() {return "valid_client_secret"; }
+    public String getAppOauthUrl() {return"/oauth/authorize";}
 }

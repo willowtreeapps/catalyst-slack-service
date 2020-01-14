@@ -9,4 +9,8 @@ public interface AppConfig {
     String getAppOauthToken();
     String getBotOauthToken();
     String getSigningSecret();
+    String getOauthUrl();
+    String getClientId();
+    String getClientSecret();
+    String getAppOauthUrl();
 }

@@ -1,5 +1,6 @@
 package services;
 
+import domain.AuthResponse;
 import domain.Event;
 import domain.Message;
 import domain.SlackResponse;
@@ -20,6 +21,11 @@ public class MockSlackService implements AppService {
 
     @Override
     public Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction) {
+        return null;
+    }
+
+    @Override
+    public CompletionStage<AuthResponse> getAuth(String requestCode) {
         return null;
     }
 }

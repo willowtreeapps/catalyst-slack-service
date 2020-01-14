@@ -57,4 +57,17 @@ public class SlackService implements AppService, WSBodyReadables {
             Json.fromJson(r.getBody(json()), SlackResponse.class)
         , _ec.current());
     }
+
+    public CompletionStage<AuthResponse> getAuth(String requestCode) {
+        var request = _wsClient.url(_config.getOauthUrl()).
+                addQueryParameter("code", requestCode).
+                addQueryParameter("client_id", _config.getClientId()).
+                addQueryParameter("client_secret", _config.getClientSecret());
+
+        var jsonPromise = request.get();
+
+        return jsonPromise.thenApplyAsync(r ->
+            Json.fromJson(r.getBody(json()), AuthResponse.class)
+        , _ec.current());
+    }
 }
