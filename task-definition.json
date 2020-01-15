@@ -25,16 +25,48 @@
       "cpu": 0,
       "secrets": [
         {
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:356223155086:secret:catalyst-bias-correct-dev-LM2GNq",
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/BIAS_CORRECT_URL",
+          "name": "BIAS_CORRECT_URL"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/PLAY_SECRET_KEY",
           "name": "PLAY_SECRET_KEY"
         },
         {
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:356223155086:secret:catalyst-bias-correct-dev-LM2GNq",
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/SLACK_TOKEN",
           "name": "SLACK_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:356223155086:secret:catalyst-bias-correct-dev-LM2GNq",
-          "name": "BIAS_CORRECT_URL"
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/BOT_ID",
+          "name": "BOT_ID"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/BOT_USERNAME",
+          "name": "BOT_USERNAME"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/APP_OAUTH_TOKEN",
+          "name": "APP_OAUTH_TOKEN"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/BOT_OAUTH_TOKEN",
+          "name": "BOT_OAUTH_TOKEN"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/SLACK_SIGNING_SECRET",
+          "name": "SLACK_SIGNING_SECRET"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/REDIS_HOST",
+          "name": "REDIS_HOST"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/SLACK_CLIENT_ID",
+          "name": "SLACK_CLIENT_ID"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/SLACK_CLIENT_SECRET",
+          "name": "SLACK_CLIENT_SECRET"
         }
       ],
       "memory": 512,
