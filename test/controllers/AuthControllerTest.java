@@ -23,6 +23,7 @@ import static play.test.Helpers.*;
 public class AuthControllerTest extends WithApplication {
 
     private MockDbManager dbManager = new MockDbManager();
+    private static final String URI = "/bias-correct/v2/slack/auth/redirect";
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
@@ -37,7 +38,7 @@ public class AuthControllerTest extends WithApplication {
     public void testMissingRequestCode() {
         var request = new Http.RequestBuilder()
                 .method(GET)
-                .uri("/bias-correct/v2/slack/auth/redirect");
+                .uri(URI);
 
         var result = route(app, request);
         var body = contentAsBytes(result).toArray();
@@ -53,7 +54,7 @@ public class AuthControllerTest extends WithApplication {
 
         var request = new Http.RequestBuilder()
                 .method(GET)
-                .uri("/bias-correct/v2/slack/auth/redirect?code="+requestCode);
+                .uri(URI + "?code=" + requestCode);
 
         var result = route(app, request);
         var body = contentAsBytes(result).toArray();
@@ -68,7 +69,7 @@ public class AuthControllerTest extends WithApplication {
         var requestCode = "valid_request_5678";
         var request = new Http.RequestBuilder()
                 .method(GET)
-                .uri("/bias-correct/v2/slack/auth/redirect?code="+requestCode);
+                .uri(URI + "?code=" + requestCode);
 
         var result = route(app, request);
 
