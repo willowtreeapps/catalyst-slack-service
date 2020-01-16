@@ -1,5 +1,6 @@
 package services;
 
+import domain.AuthResponse;
 import domain.Event;
 import domain.Message;
 import domain.SlackResponse;
@@ -12,4 +13,10 @@ public interface AppService {
     CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s);
 
     Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction);
+
+    CompletionStage<AuthResponse> getAuth(String requestCode);
+
+    CompletionStage<SlackResponse> postChannelJoinMessage(final MessageHandler messages, final Event event);
+
+    Message generateChannelJoinMessage(MessageHandler msg, Event event);
 }

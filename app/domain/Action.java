@@ -6,11 +6,13 @@ public class Action {
     public String type = "button";
     public String value;
     public String style;
+    public String url;
 
-    public Action(String name, String text, String value, String style) {
+    public Action(String name, String text, String value, String style, String url) {
         this.name = name;
         this.text = text;
         this.value = value;
         this.style = style;
+        this.url = url;
     }
 }
