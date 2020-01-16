@@ -23,6 +23,12 @@
         }
       ],
       "cpu": 0,
+      "environment": [
+        {
+          "name": "REDIS_PORT",
+          "value": "6379"
+        }
+      ],
       "secrets": [
         {
           "valueFrom": "arn:aws:ssm:us-east-1:356223155086:parameter/BIAS_CORRECT_URL",
