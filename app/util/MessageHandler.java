@@ -11,6 +11,8 @@ public class MessageHandler {
 
     private final Messages messages;
 
+
+    // TODO: use tika instead?
     @Inject
     public MessageHandler(Messages preferred) {
         messages = preferred;

@@ -29,4 +29,6 @@ public class SlackConfig implements AppConfig {
     public String getRedisHost() {return _config.getString("redis_host"); }
     public int getRedisPort() {return _config.getInt("redis_port"); }
     public String getOauthUrl() {return _config.getString("oauth_url");}
+    public String getUpdateUrl() { return _config.getString("update_url"); }
+    public String getAuthorizedUrl() { return _config.getString("authorized_url"); }
 }

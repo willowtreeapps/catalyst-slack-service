@@ -15,7 +15,7 @@ public class RequestVerifier {
     private static final String SIGNATURE_HEADER = "X-Slack-Signature";
     private static final String TIMESTAMP_HEADER = "X-Slack-Request-Timestamp";
 
-    public static boolean headersExist(Http.Request request) {
+    private static boolean headersExist(Http.Request request) {
         var slackSignature = request.header(SIGNATURE_HEADER);
         var timestamp = request.header(TIMESTAMP_HEADER);
 
@@ -30,7 +30,7 @@ public class RequestVerifier {
      * @param request
      * @return
      */
-    public static boolean verified(String signingSecret, Http.Request request) {
+    private static boolean hashVerified(String signingSecret, Http.Request request) {
         var slackSignature = request.header(SIGNATURE_HEADER);
         var timestamp = request.header(TIMESTAMP_HEADER);
 
@@ -49,5 +49,13 @@ public class RequestVerifier {
             e.printStackTrace();
         }
         return hash.equals(slackSignature.get());
+    }
+
+    public static boolean verified(Http.Request httpRequest, String configSigningSecret, String configToken, String token) {
+        var headersExist = headersExist(httpRequest);
+
+        return
+            (headersExist && hashVerified(configSigningSecret, httpRequest)) ||
+            (!headersExist && token != null && token.equals(configToken));
     }
 }

@@ -35,9 +35,6 @@ public class AuthController extends Controller {
      * Handle all oauth requests from Slack.
      */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
-
-        // TODO: verify request?
-
         var requestCode = httpRequest.queryString("code");
 
         if (requestCode.isEmpty()) {
@@ -59,16 +56,12 @@ public class AuthController extends Controller {
             dbKey.teamId = response.teamId;
             dbKey.userId = response.userId;
             _tokenDb.setUserToken(dbKey, response.userToken);
-            //TODO: add to team tokens??
             //TODO: return found(APP_INSTALL_URL)
-            return CompletableFuture.completedFuture(ok(Json.toJson(Map.of(
-                    "ok", response.ok,
-                    "redirect", "authorized page"))));
+            return CompletableFuture.completedFuture(found(_config.getAuthorizedUrl()));
         });
     }
 
     public Result signin() {
-        // TODO: verify if this is the right url
         return found(_config.getAppSigninUrl());
     }
 }

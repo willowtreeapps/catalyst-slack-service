@@ -85,13 +85,14 @@ public class SlackServiceTest {
         event.ts = "valid_callback_id";
         event.channel = "valid_channel";
         event.user = "USER123";
+        event.text = "she's so quiet";
 
         var correction = "she's so thoughtful";
 
-        var reply = service.generateSuggestion(msg, event, config.getAppOauthToken(), correction);
+        var reply = service.generateSuggestion(msg, event, correction);
 
         Assert.assertEquals("Suggested correction", reply.text);
-        Assert.assertEquals(correction, reply.attachments.get(0).actions.get(0).name);
+        Assert.assertEquals(event.text, reply.attachments.get(0).actions.get(0).name);
         Assert.assertEquals(event.user, reply.user);
     }
 
@@ -113,7 +114,7 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = config.getBotId();
 
-        var reply = service.generateChannelJoinMessage(msg, event);
+        var reply = service.generatePluginAddedMessage(msg, event);
 
         Assert.assertEquals("Gender bias information", reply.text);
         Assert.assertEquals(null, reply.user);
@@ -126,20 +127,20 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var reply = service.generateChannelJoinMessage(msg, event);
+        var reply = service.generateUserJoinedMessage(msg, event);
 
         Assert.assertEquals("Gender bias information", reply.text);
         Assert.assertEquals(event.user, reply.user);
     }
 
     @Test
-    public void testPostChannelJoinMessage() throws Exception {
+    public void testPostChannelJoin() throws Exception {
         var event = new Event();
         event.ts = "valid_callback_id";
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var response = service.postChannelJoinMessage(msg, event)
+        var response = service.postChannelJoin(msg, event)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 

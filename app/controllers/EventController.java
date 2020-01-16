@@ -58,15 +58,29 @@ public class EventController extends Controller {
         return CompletableFuture.completedFuture(ok(json));
     }
 
+    /**
+     * All event requests will be handled here
+     * @param httpRequest
+     * @return
+     */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-        var error = validateRequest(httpRequest);
+        var request = httpRequest.body().parseJson(Request.class);
 
-        if (error != null) {
-            return resultBadRequest(messages, error);
+        if (request.isEmpty()) {
+            return resultBadRequest(messages,"error.invalid.request");
         }
 
-        var eventRequest = httpRequest.body().parseJson(Request.class).get();
+        var eventRequest = request.get();
+
+        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
+            return resultBadRequest(messages, "error.request.not.verified");
+        }
+
+        if (eventRequest.type == null) {
+            return resultBadRequest(messages, "error.missing.type");
+        }
+
         if (eventRequest.type.equals("url_verification")) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals("event_callback")) {
@@ -74,30 +88,6 @@ public class EventController extends Controller {
         }
 
         return resultBadRequest(messages, "error.unsupported.type");
-    }
-
-    private String validateRequest(final Http.Request httpRequest) {
-        var request = httpRequest.body().parseJson(Request.class);
-        if (request.isEmpty()) {
-            return "error.invalid.request";
-        }
-
-        var headersExist = RequestVerifier.headersExist(httpRequest);
-        if (headersExist && !RequestVerifier.verified(_config.getSigningSecret(), httpRequest)) {
-            return "error.request.not.verified";
-        }
-
-        // token does not exist in the request or is not equal to SLACK_TOKEN environment variable
-        var isTokenInvalid = request.filter(r -> r.token == null || !r.token.equals(_config.getToken())).isPresent();
-        if (!headersExist && isTokenInvalid) {
-            return "error.invalid.token";
-        }
-
-        if (request.filter(r -> r.type == null).isPresent()) {
-            return "error.missing.type";
-        }
-
-        return null;
     }
 
     /**
@@ -169,7 +159,7 @@ public class EventController extends Controller {
 
     public CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
 
-        return _slackService.postChannelJoinMessage(messages, event).thenApplyAsync(slackResponse ->
+        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse ->
             slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
         , _ec.current());
     }

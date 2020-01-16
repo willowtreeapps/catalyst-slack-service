@@ -10,8 +10,11 @@ public class Message {
     public String token;
     public String user;
     @JsonProperty("as_user")
-    public String asUser = "false";
+    public boolean asUser = false;
     public String text;
+    @JsonProperty("trigger_id")
+    public String triggerId;
+    public String ts;
     public List<Attachment> attachments;
 
     public Message(String channel, String token, String user, String text, List<Attachment> attachments) {

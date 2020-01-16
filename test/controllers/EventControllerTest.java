@@ -61,7 +61,7 @@ public class EventControllerTest extends WithApplication {
         var error = Json.parse(body).path("error").textValue();
 
         assertEquals(BAD_REQUEST, result.status());
-        assertEquals("Invalid slack token", error);
+        assertEquals("Request not verified", error);
     }
 
     @Test

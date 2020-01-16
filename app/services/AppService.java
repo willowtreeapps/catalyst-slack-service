@@ -1,22 +1,27 @@
 package services;
 
-import domain.AuthResponse;
-import domain.Event;
-import domain.Message;
-import domain.SlackResponse;
+import domain.*;
 import util.MessageHandler;
 
 import java.util.concurrent.CompletionStage;
 
 public interface AppService {
 
-    CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s);
+    CompletionStage<SlackResponse> postSuggestion(MessageHandler msg, Event event, String correction);
 
-    Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction);
+    Message generateSuggestion(MessageHandler msg, Event event, String correction);
 
     CompletionStage<AuthResponse> getAuthorization(String requestCode);
 
-    CompletionStage<SlackResponse> postChannelJoinMessage(final MessageHandler messages, final Event event);
+    CompletionStage<SlackResponse> postChannelJoin(final MessageHandler msg, final Event event);
 
-    Message generateChannelJoinMessage(MessageHandler msg, Event event);
+    Message generateUserJoinedMessage(MessageHandler msg, Event event);
+
+    Message generatePluginAddedMessage(MessageHandler msg, Event event);
+
+    CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage);
+
+    CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken);
+
+    CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage);
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage;
 
 public class MockSlackService implements AppService {
     @Override
-    public CompletionStage<SlackResponse> postSuggestion(MessageHandler messages, Event event, String s) {
+    public CompletionStage<SlackResponse> postSuggestion(MessageHandler msg, Event event, String correction) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";
@@ -17,7 +17,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction) {
+    public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
         return null;
     }
 
@@ -39,7 +39,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postChannelJoinMessage(MessageHandler messages, Event event) {
+    public CompletionStage<SlackResponse> postChannelJoin(MessageHandler msg, Event event) {
         var response = new SlackResponse();
         response.ok = true;
 
@@ -50,7 +50,27 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public Message generateChannelJoinMessage(MessageHandler msg, Event event) {
+    public Message generateUserJoinedMessage(MessageHandler msg, Event event) {
+        return null;
+    }
+
+    @Override
+    public Message generatePluginAddedMessage(MessageHandler msg, Event event) {
+        return null;
+    }
+
+    @Override
+    public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
+        return null;
+    }
+
+    @Override
+    public CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken) {
+        return null;
+    }
+
+    @Override
+    public CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage) {
         return null;
     }
 }
