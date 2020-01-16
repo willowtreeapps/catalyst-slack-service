@@ -1,6 +1,7 @@
 package controllers;
 
-import db.DbManager;
+import db.TokenHandler;
+import db.TokenKey;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -20,20 +21,23 @@ public class AuthController extends Controller {
     private AppService _service;
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
-    private final DbManager _db;
+    private final TokenHandler _tokenDb;
 
     @Inject
-    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, DbManager db) {
+    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db) {
         this._service = service;
         this._config = config;
         this._messagesApi = messagesApi;
-        this._db = db;
+        this._tokenDb = db;
     }
 
     /**
      * Handle all oauth requests from Slack.
      */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
+
+        // TODO: verify request?
+
         var requestCode = httpRequest.queryString("code");
 
         if (requestCode.isEmpty()) {
@@ -44,14 +48,17 @@ public class AuthController extends Controller {
         }
 
         // send a get request to Slack with the code to get token for authed user
-        return _service.getAuth(requestCode.get()).thenComposeAsync( response -> {
+        return _service.getAuthorization(requestCode.get()).thenComposeAsync(response -> {
             if (response.error != null || response.teamId == null || response.userId == null || response.userToken == null) {
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,
                         "error", response.error))));
             }
 
-            _db.addUserToken(response.teamId, response.userId, response.userToken);
+            var dbKey = new TokenKey();
+            dbKey.teamId = response.teamId;
+            dbKey.userId = response.userId;
+            _tokenDb.setUserToken(dbKey, response.userToken);
             //TODO: add to team tokens??
             //TODO: return found(APP_INSTALL_URL)
             return CompletableFuture.completedFuture(ok(Json.toJson(Map.of(

@@ -1,7 +1,8 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import db.DbManager;
+import db.AnalyticsHandler;
+import db.AnalyticsKey;
 import domain.Event;
 import play.i18n.MessagesApi;
 import play.libs.Json;
@@ -36,17 +37,17 @@ public class EventController extends Controller {
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
-    private final DbManager _db;
+    private final AnalyticsHandler _db;
 
     @Inject
     public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
-                           MessageCorrector biasCorrector, AppService slackService, DbManager dbManager) {
+                           MessageCorrector biasCorrector, AppService slackService, AnalyticsHandler db) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
-        this._db = dbManager;
+        this._db = db;
     }
 
     private static CompletionStage<Result> resultBadRequest(MessageHandler messages, String error) {
@@ -124,7 +125,6 @@ public class EventController extends Controller {
             return resultBadRequest(messages, "error.invalid.event");
         }
 
-        var result = resultOk(SUCCESS);
         var userName = event.username;
         var botId = event.botId;
 
@@ -132,21 +132,25 @@ public class EventController extends Controller {
             userName != null && userName.equals(_config.getBotUserName());
 
         if (isBotMessage || event.user == null || event.text == null || event.type == null || !event.type.equals("message")) {
-            return result;
+            return resultOk(SUCCESS);
         }
 
         if (event.subtype == null) {
             //TODO: handle help request direct im to slackbot
-            result = handleUserMessage(messages, event);
+            return handleUserMessage(messages, event);
         } else if (event.subtype.equals("channel_join")) {
-            result = handleChannelJoin(messages, event);
+            return handleChannelJoin(messages, event);
         }
 
-        return result;
+        return resultOk(SUCCESS);
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
-        _db.updateMessageCounts(event.team, event.channel);
+        var key = new AnalyticsKey();
+        key.teamId = event.team;
+        key.channelId = event.channel;
+
+        _db.incrementMessageCounts(key);
         var correctorResult = _biasCorrector.getCorrection(event.text);
 
         return correctorResult.thenComposeAsync(correction -> {

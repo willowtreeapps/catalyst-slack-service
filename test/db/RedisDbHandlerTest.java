@@ -6,18 +6,16 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import util.MockConfig;
 
-public class RedisDbManagerTest {
+public class RedisDbHandlerTest {
 
-    RedisDbManager dbManager;
+    RedisDbHandler dbManager;
 
     @Before
     public void setup() {
         var jedisPool = Mockito.mock(JedisPool.class);
         var jedis = Mockito.mock(Jedis.class);
-        dbManager = new RedisDbManager(new MockConfig());
-        dbManager._jedisPool = jedisPool;
+        dbManager = new RedisDbHandler(jedisPool);
         Mockito.when(jedisPool.getResource()).thenReturn(jedis);
         Mockito.when(jedis.hget("user_tokens", "TEAM123_USER123")).thenReturn("xoxp-token-1234");
     }
@@ -25,8 +23,12 @@ public class RedisDbManagerTest {
     @Test
     public void testUpdateMessageCounts() {
         try {
-            dbManager.updateMessageCounts(null, null);
-            dbManager.updateMessageCounts("TEAM123", "USER123");
+            var key = new AnalyticsKey();
+            dbManager.incrementMessageCounts(key);
+
+            key.teamId = "TEAM123";
+            key.channelId = "CHANNEL123";
+            dbManager.incrementMessageCounts(key);
         } catch(Exception e) {
             Assert.fail(e.getMessage());
         }
@@ -34,15 +36,22 @@ public class RedisDbManagerTest {
 
     @Test
     public void testGetUserToken() {
-        var token = dbManager.getUserToken("TEAM123", "USER123");
+        var key = new TokenKey();
+        key.teamId = "TEAM123";
+        key.userId = "USER123";
+        var token = dbManager.getUserToken(key);
         Assert.assertEquals("xoxp-token-1234", token);
     }
 
     @Test
     public void testAddUserToken() {
         try {
-            dbManager.addUserToken(null, null, null);
-            dbManager.addUserToken("TEAM123", "USER123", "xoxp-token-1234");
+            var key = new TokenKey();
+            dbManager.setUserToken(key, null);
+
+            key.teamId = "TEAM123";
+            key.userId = "USER123";
+            dbManager.setUserToken(key, "xoxp-token-1234");
         } catch(Exception e) {
             Assert.fail(e.getMessage());
         }

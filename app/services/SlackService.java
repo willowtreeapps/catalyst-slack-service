@@ -9,7 +9,7 @@ import util.AppConfig;
 import util.MessageHandler;
 
 import javax.inject.Inject;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.concurrent.CompletionStage;
 
 public class SlackService implements AppService, WSBodyReadables {
@@ -27,12 +27,12 @@ public class SlackService implements AppService, WSBodyReadables {
 
     //TODO: remove authtoken in params and just get from config?
     public Message generateSuggestion(MessageHandler msg, Event event, String authToken, String correction) {
-        var actions = new LinkedList<Action>();
+        var actions = new ArrayList<Action>();
         actions.add(new Action(correction, msg.get("button.correct"), "yes", "primary", null));
         actions.add(new Action(correction, msg.get("button.no"), "no", "danger", null));
         actions.add(new Action(correction, msg.get("button.learn"), "learn_more", null, null));
 
-        var attachments = new LinkedList<Attachment>();
+        var attachments = new ArrayList<Attachment>();
         attachments.add(new Attachment(msg.get("message.fallback"), msg.get("message.title"), event.ts, actions));
 
         var message = new Message(event.channel, authToken, event.user, msg.get("message.suggestion",correction), attachments);
@@ -61,11 +61,11 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     public Message generateChannelJoinMessage(MessageHandler msg, Event event) {
-        var actions = new LinkedList<Action>();
+        var actions = new ArrayList<Action>();
         actions.add(new Action(null, msg.get("button.authorize"), "yes", "primary", _config.getAppSigninUrl()));
         actions.add(new Action(null, msg.get("button.learn"), "learn_more", null, _config.getLearnMoreUrl()));
 
-        var attachments = new LinkedList<Attachment>();
+        var attachments = new ArrayList<Attachment>();
         attachments.add(new Attachment(msg.get("message.fallback"), null, null, actions));
 
         var user = event.user == null || event.user.equals(_config.getBotId()) ? null : event.user;
@@ -85,7 +85,7 @@ public class SlackService implements AppService, WSBodyReadables {
         return postReply(url, botReply, _config.getAppOauthToken());
     }
 
-    public CompletionStage<AuthResponse> getAuth(String requestCode) {
+    public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var request = _wsClient.url(_config.getOauthUrl()).
                 addQueryParameter("code", requestCode).
                 addQueryParameter("client_id", _config.getClientId()).

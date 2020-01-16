@@ -1,7 +1,7 @@
 package controllers;
 
-import db.DbManager;
-import db.MockDbManager;
+import db.TokenHandler;
+import db.MockDbHandler;
 import domain.Event;
 import domain.SlackResponse;
 import org.junit.Test;
@@ -30,7 +30,7 @@ public class EventControllerTest extends WithApplication {
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(DbManager.class).to(MockDbManager.class))
+                .overrides(bind(TokenHandler.class).to(MockDbHandler.class))
                 .build();
     }
 

@@ -1,7 +1,7 @@
 package controllers;
 
-import db.DbManager;
-import db.MockDbManager;
+import db.TokenHandler;
+import db.MockDbHandler;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -28,7 +28,7 @@ public class HomeControllerTest extends WithApplication {
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(DbManager.class).to(MockDbManager.class))
+                .overrides(bind(TokenHandler.class).to(MockDbHandler.class))
                 .build();
     }
 
