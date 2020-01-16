@@ -1,7 +1,8 @@
 package controllers;
 
-import db.DbManager;
-import db.MockDbManager;
+import db.TokenHandler;
+import db.MockDbHandler;
+import db.TokenKey;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -22,7 +23,7 @@ import static play.test.Helpers.*;
 
 public class AuthControllerTest extends WithApplication {
 
-    private MockDbManager dbManager = new MockDbManager();
+    private MockDbHandler dbManager = new MockDbHandler();
     private static final String URI = "/bias-correct/v2/slack/auth/redirect";
     @Override
     protected Application provideApplication() {
@@ -30,7 +31,7 @@ public class AuthControllerTest extends WithApplication {
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(DbManager.class).toInstance(dbManager))
+                .overrides(bind(TokenHandler.class).toInstance(dbManager))
                 .build();
     }
 
@@ -74,7 +75,11 @@ public class AuthControllerTest extends WithApplication {
         var result = route(app, request);
 
         assertEquals(OK, result.status());
-        assertEquals("xoxp-token-123", dbManager.getUserToken("TEAM234", "USER123"));
+        var tokenKey = new TokenKey();
+        tokenKey.teamId = "TEAM234";
+        tokenKey.userId = "USER123";
+
+        assertEquals("xoxp-token-123", dbManager.getUserToken(tokenKey));
     }
 
     @Test
