@@ -3,5 +3,7 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /bias-correct/v2/slack              controllers.HomeController.index
-POST    /bias-correct/v2/slack/events       controllers.EventController.handle(request: Request)
+GET     /bias-correct/v2/slack                  controllers.HomeController.index
+POST    /bias-correct/v2/slack/events           controllers.EventController.handle(request: Request)
+GET     /bias-correct/v2/slack/signin           controllers.AuthController.signin
+GET     /bias-correct/v2/slack/auth/redirect    controllers.AuthController.handle(request: Request)

@@ -47,7 +47,6 @@ jobs:
       - name: Run tests
         run: sbt test
 
-
       - name: Build and publish docker image
         id: build-image
         env:

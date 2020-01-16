@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import db.DbManager;
 import domain.Event;
 import play.i18n.MessagesApi;
 import play.libs.Json;
@@ -35,14 +36,17 @@ public class EventController extends Controller {
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
+    private final DbManager _db;
 
     @Inject
-    public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi, MessageCorrector biasCorrector, AppService slackService) {
+    public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
+                           MessageCorrector biasCorrector, AppService slackService, DbManager dbManager) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
+        this._db = dbManager;
     }
 
     private static CompletionStage<Result> resultBadRequest(MessageHandler messages, String error) {
@@ -120,37 +124,48 @@ public class EventController extends Controller {
             return resultBadRequest(messages, "error.invalid.event");
         }
 
+        var result = resultOk(SUCCESS);
         var userName = event.username;
         var botId = event.botId;
 
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        if (isBotMessage || event.user == null || event.text == null) {
-            return resultOk(SUCCESS);
+        if (isBotMessage || event.user == null || event.text == null || event.type == null || !event.type.equals("message")) {
+            return result;
         }
 
         if (event.subtype == null) {
             //TODO: handle help request direct im to slackbot
-            return handleUserMessage(messages, event);
-        } else {
-            //TODO: handle channel_join
-            return resultOk(SUCCESS);
+            result = handleUserMessage(messages, event);
+        } else if (event.subtype.equals("channel_join")) {
+            result = handleChannelJoin(messages, event);
         }
+
+        return result;
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
-        CompletionStage<String> correctorResult = _biasCorrector.getCorrection(event.text);
-        CompletionStage<Result> slackResult = correctorResult.thenComposeAsync(correction -> {
+        _db.updateMessageCounts(event.team, event.channel);
+        var correctorResult = _biasCorrector.getCorrection(event.text);
+
+        return correctorResult.thenComposeAsync(correction -> {
 
             if (correction.isEmpty()) {
                 return CompletableFuture.completedFuture(ok(SUCCESS));
-            } else {
-                return _slackService.postSuggestion(messages, event, correction)
-                        .thenApplyAsync(slackResponse -> ok(Json.toJson(slackResponse)), _ec.current());
             }
-        }, _ec.current());
 
-        return slackResult;
+            return _slackService.postSuggestion(messages, event, correction)
+                        .thenApplyAsync(slackResponse ->
+                            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
+                        , _ec.current());
+        }, _ec.current());
+    }
+
+    public CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
+
+        return _slackService.postChannelJoinMessage(messages, event).thenApplyAsync(slackResponse ->
+            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
+        , _ec.current());
     }
 }
