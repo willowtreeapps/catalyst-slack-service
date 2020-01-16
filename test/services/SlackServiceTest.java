@@ -154,7 +154,7 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var response = service.getAuth("code_1234")
+        var response = service.getAuthorization("code_1234")
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 

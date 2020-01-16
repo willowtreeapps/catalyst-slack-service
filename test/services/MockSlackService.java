@@ -1,9 +1,6 @@
 package services;
 
-import domain.AuthResponse;
-import domain.Event;
-import domain.Message;
-import domain.SlackResponse;
+import domain.*;
 import util.MessageHandler;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +22,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<AuthResponse> getAuth(String requestCode) {
+    public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var authResponse = new AuthResponse();
 
         if (requestCode.equals("invalid_request_1234")) {
