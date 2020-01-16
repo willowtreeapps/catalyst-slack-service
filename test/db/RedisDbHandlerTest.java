@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import util.MockConfig;
 
 public class RedisDbHandlerTest {
 
@@ -16,8 +15,7 @@ public class RedisDbHandlerTest {
     public void setup() {
         var jedisPool = Mockito.mock(JedisPool.class);
         var jedis = Mockito.mock(Jedis.class);
-        dbManager = new RedisDbHandler(new MockConfig());
-        dbManager._jedisPool = jedisPool;
+        dbManager = new RedisDbHandler(jedisPool);
         Mockito.when(jedisPool.getResource()).thenReturn(jedis);
         Mockito.when(jedis.hget("user_tokens", "TEAM123_USER123")).thenReturn("xoxp-token-1234");
     }

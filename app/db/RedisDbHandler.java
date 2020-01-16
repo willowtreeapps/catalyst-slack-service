@@ -3,8 +3,6 @@ package db;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import util.AppConfig;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
@@ -13,14 +11,14 @@ import java.time.format.DateTimeFormatter;
 
 public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
-    protected JedisPool _jedisPool;
+    private JedisPool _jedisPool;
     private static final ZoneId ET = ZoneId.of("America/New_York");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String USER_TOKENS = "user_tokens";
 
     @Inject
-    public RedisDbHandler(AppConfig config) {
-        _jedisPool = new JedisPool( new JedisPoolConfig(), config.getRedisHost(), config.getRedisPort() );
+    public RedisDbHandler(JedisPool jedisPool) {
+        _jedisPool = jedisPool;
     }
 
     @Override
