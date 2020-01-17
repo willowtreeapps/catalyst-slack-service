@@ -8,3 +8,4 @@ POST    /bias-correct/v2/slack/events           controllers.EventController.hand
 GET     /bias-correct/v2/slack/signin           controllers.AuthController.signin
 GET     /bias-correct/v2/slack/auth/redirect    controllers.AuthController.handle(request: Request)
 POST    /bias-correct/v2/slack/actions          controllers.UserActionController.handle(request: Request)
+POST    /bias-correct/v2/slack/help             controllers.HelpController.handle(request: Request)

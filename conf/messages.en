@@ -15,6 +15,8 @@ message.gender.bias.info = {0}.\n Studies show that unconscious gender bias fuel
 message.plugin.info = The BiasCorrect plug-in helps identify and correct unconscious gender bias in day-to-day messages and conversations.\n Examples: 'she is very emotional', or 'she is very dramatic', or 'she is a nag', or 'she is very temperamental'.\nTry typing one of these messages and see what happens!
 message.learn.more = *Before you hit send, think about it...if she was a he, would you have chosen that word?*\n Unconscious gender bias negatively impacts women’s advancement in the workplace.  Discover tools for overcoming it at <https://catalyst.org/topics/unconscious-bias/>
 message.replaced.with = {0} has replaced {1} with {2}
+message.specify.action = No action specified. Supported actions: [help]
+message.unsupported.action = Unsupported action: {0}.  Supported actions: [help]
 
 button.correct = Bias Correct
 button.no = No
