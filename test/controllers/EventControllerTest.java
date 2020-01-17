@@ -232,7 +232,7 @@ public class EventControllerTest extends WithApplication {
     }
 
     @Test
-    public void testSigningSecret() {
+    public void testRequestVerified() {
         var event = new Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";

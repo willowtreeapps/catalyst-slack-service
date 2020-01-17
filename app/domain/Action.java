@@ -8,6 +8,7 @@ public class Action {
     public String style;
     public String url;
 
+    public Action(){}
     public Action(String name, String text, String value, String style, String url) {
         this.name = name;
         this.text = text;
