@@ -293,8 +293,7 @@ public class EventControllerTest extends WithApplication {
 
         event.text = "invalid";
         event.user = "USER123";
-        event.type = "message";
-        event.subtype = "channel_join";
+        event.type = "member_joined_channel";
         event.channel = "valid_channel";
 
         var httpRequest = new Http.RequestBuilder()
@@ -315,8 +314,7 @@ public class EventControllerTest extends WithApplication {
 
         event.text = "<@USER123> has joined the channel";
         event.user = "USER123";
-        event.type = "message";
-        event.subtype = "channel_join";
+        event.type = "member_joined_channel";
         event.channel = "valid_channel";
 
         var httpRequest = new Http.RequestBuilder()

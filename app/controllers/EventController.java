@@ -131,18 +131,17 @@ public class EventController extends Controller {
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        if (isBotMessage || event.user == null || event.text == null || event.type == null || !event.type.equals("message")) {
+        if (isBotMessage || event.user == null || event.type == null ||
+            !( (event.type.equals("message") && event.text != null) || event.type.equals("member_joined_channel") ) ) {
             return resultOk(SUCCESS);
         }
 
-        if (event.subtype == null) {
-            //TODO: handle help request direct im to slackbot
-            return handleUserMessage(messages, event);
-        } else if (event.subtype.equals("channel_join")) {
+        if (event.type.equals("member_joined_channel")) {
             return handleChannelJoin(messages, event);
         }
 
-        return resultOk(SUCCESS);
+        //TODO: handle help request direct im to slackbot
+        return handleUserMessage(messages, event);
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
