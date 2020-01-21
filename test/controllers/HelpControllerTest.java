@@ -21,6 +21,7 @@ import static play.test.Helpers.*;
 public class HelpControllerTest extends WithApplication {
 
     private final static String URI = "/bias-correct/v2/slack/help";
+    private final static String COMMAND = "/bias-correct-v2";
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
@@ -54,7 +55,7 @@ public class HelpControllerTest extends WithApplication {
     public void testUnsupportedAction() {
         var requestBody = new HashMap<String, String[]>();
         requestBody.put("token", new String[]{"valid_token_123"});
-        requestBody.put("command", new String[]{"/bias-correct-v2"});
+        requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"random"});
         var request = new Http.RequestBuilder()
                 .method(POST)
@@ -72,7 +73,7 @@ public class HelpControllerTest extends WithApplication {
     public void testSpecifyAction() {
         var requestBody = new HashMap<String, String[]>();
         requestBody.put("token", new String[]{"valid_token_123"});
-        requestBody.put("command", new String[]{"/bias-correct-v2"});
+        requestBody.put("command", new String[]{COMMAND});
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -89,7 +90,7 @@ public class HelpControllerTest extends WithApplication {
     public void testHelpContent() {
         var requestBody = new HashMap<String, String[]>();
         requestBody.put("token", new String[]{"valid_token_123"});
-        requestBody.put("command", new String[]{"/bias-correct-v2"});
+        requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"help"});
         var request = new Http.RequestBuilder()
                 .header("X-Slack-Signature", "v0=9c1eba191b399791ee89180944d7ea9f52e2938fdf3c4e325f84e60c4d900033")
@@ -104,8 +105,21 @@ public class HelpControllerTest extends WithApplication {
     public void testRequestNotVerified() {
         var requestBody = new HashMap<String, String[]>();
         requestBody.put("token", new String[]{"invalid_token"});
-        requestBody.put("command", new String[]{"/bias-correct-v2"});
+        requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"help"});
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(requestBody);
+        var result = route(app, request);
+        assertEquals(BAD_REQUEST, result.status());
+    }
+
+    @Test
+    public void testEmptyToken() {
+        var requestBody = new HashMap<String, String[]>();
+        requestBody.put("token", new String[]{});
+        requestBody.put("command", new String[]{COMMAND});
+
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);

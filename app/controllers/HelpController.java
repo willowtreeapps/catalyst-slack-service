@@ -38,12 +38,12 @@ public class HelpController extends Controller {
         }
 
 
+        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         var token = PayloadHelper.getFirstArrayValue(body.get(TOKEN));
         if (token.isEmpty()) {
             //TODO: debug log
-            return noContent();
+            return badRequest(messages.get(MessageHandler.REQUEST_NOT_VERIFIED));
         }
-        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
 
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token.get())) {
             return badRequest(messages.get(MessageHandler.REQUEST_NOT_VERIFIED));

@@ -45,7 +45,7 @@ public class UserActionControllerTest extends WithApplication {
     @Test
     public void testEmptyBody() {
         var requestBody = new HashMap<String, String[]>();
-        requestBody.put("payload", new String[]{});
+        requestBody.put("fake_payload", new String[]{});
 
         var request = new Http.RequestBuilder()
                 .method(POST)
@@ -107,6 +107,37 @@ public class UserActionControllerTest extends WithApplication {
     }
 
     @Test
+    public void testMissingIdFields() {
+        var requestBody = new HashMap<String, String[]>();
+
+        var action = new Action();
+        action.name = "she's so quiet";
+        action.value = "no";
+
+        var interactiveMessage = new InteractiveMessage();
+        interactiveMessage.token = "valid_token_123";
+        interactiveMessage.type = "interactive_message";
+        interactiveMessage.callbackId = "1234567890.000000";
+        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
+        interactiveMessage.team = new InteractiveMessage.Team();
+        interactiveMessage.channel = new InteractiveMessage.Channel();
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.responseUrl = "/api/response_url";
+
+        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
+
+        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
+        requestBody.put("payload", payload);
+
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(requestBody);
+
+        var result = route(app, request);
+        assertEquals(NO_CONTENT, result.status());
+    }
+
+    @Test
     public void testNoAction() {
         var requestBody = new HashMap<String, String[]>();
 
@@ -139,6 +170,40 @@ public class UserActionControllerTest extends WithApplication {
 
         var result = route(app, request);
         assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testNoActionMissingResponseUrl() {
+        var requestBody = new HashMap<String, String[]>();
+
+        var action = new Action();
+        action.name = "she's so quiet";
+        action.value = "no";
+
+        var interactiveMessage = new InteractiveMessage();
+        interactiveMessage.token = "valid_token_123";
+        interactiveMessage.type = "interactive_message";
+        interactiveMessage.callbackId = "1234567890.000000";
+        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
+        interactiveMessage.team = new InteractiveMessage.Team();
+        interactiveMessage.team.id = "TEAM123";
+        interactiveMessage.channel = new InteractiveMessage.Channel();
+        interactiveMessage.channel.id = "CHANNEL123";
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
+
+        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
+
+        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
+        requestBody.put("payload", payload);
+
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(requestBody);
+
+        var result = route(app, request);
+        assertEquals(NO_CONTENT, result.status());
     }
 
     @Test
@@ -243,4 +308,37 @@ public class UserActionControllerTest extends WithApplication {
         assertEquals(NO_CONTENT, result.status());
     }
 
+    @Test
+    public void testUnsupportedAction() {
+        var requestBody = new HashMap<String, String[]>();
+
+        var action = new Action();
+        action.name = "unknown_name";
+        action.value = "unsupported_action";
+
+        var interactiveMessage = new InteractiveMessage();
+        interactiveMessage.token = "valid_token_123";
+        interactiveMessage.type = "interactive_message";
+        interactiveMessage.callbackId = "1234567890.000000";
+        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
+        interactiveMessage.team = new InteractiveMessage.Team();
+        interactiveMessage.team.id = "TEAM123";
+        interactiveMessage.channel = new InteractiveMessage.Channel();
+        interactiveMessage.channel.id = "CHANNEL123";
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
+
+        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
+
+        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
+        requestBody.put("payload", payload);
+
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(requestBody);
+
+        var result = route(app, request);
+        assertEquals(NO_CONTENT, result.status());
+    }
 }
