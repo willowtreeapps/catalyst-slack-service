@@ -22,7 +22,5 @@ public class ApiTest {
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
         assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("she is neat")));
-
     }
-
 }

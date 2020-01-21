@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MessageResponse {
 
     // variables
-
     @JsonProperty
     private String input;
     @JsonProperty
@@ -14,7 +13,6 @@ public class MessageResponse {
     private String correction;
 
     // setters
-
     public void setInput(String input) {
         this.input = input;
     }
@@ -28,7 +26,6 @@ public class MessageResponse {
     }
 
     // getters
-
     public String getInput() {
         return input;
     }
@@ -40,5 +37,4 @@ public class MessageResponse {
     public String getCorrection() {
         return correction;
     }
-
 }
