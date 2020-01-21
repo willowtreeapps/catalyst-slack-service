@@ -131,12 +131,14 @@ public class EventController extends Controller {
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        if (isBotMessage || event.user == null || event.type == null ||
-            !( (event.type.equals("message") && event.text != null) || event.type.equals("member_joined_channel") ) ) {
+        boolean isMessageEvent = event.type != null && event.type.equals("message") && event.text != null;
+        boolean isChannelJoinEvent = event.type != null && event.type.equals("member_joined_channel");
+
+        if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
             return resultOk(SUCCESS);
         }
 
-        if (event.type.equals("member_joined_channel")) {
+        if (isChannelJoinEvent) {
             return handleChannelJoin(messages, event);
         }
 
