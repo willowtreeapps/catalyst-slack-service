@@ -46,6 +46,8 @@ jobs:
 
       - name: Run tests
         run: sbt test
+        env:
+          BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
 
       - name: Build and publish docker image
         id: build-image

@@ -11,13 +11,13 @@ public class Correct {
 
     private static RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
+    //sends POST request with message text to Correction service
     public static ResponseEntity<MessageResponse> postCorrect(MessagePayload payload) {
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<MessagePayload> httpEntity = new HttpEntity<>(payload, requestHeaders);
 
-        return restTemplate.exchange("http://localhost:9000/corrector/correct", HttpMethod.POST, httpEntity, MessageResponse.class);
+        return restTemplate.exchange(System.getenv("BIAS_CORRECT_URL"), HttpMethod.POST, httpEntity, MessageResponse.class);
     }
-
 }
