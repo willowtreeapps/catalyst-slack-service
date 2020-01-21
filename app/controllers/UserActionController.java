@@ -66,6 +66,12 @@ public class UserActionController extends Controller {
 
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         var interactiveMessage = Json.fromJson(Json.parse(payload[0]), InteractiveMessage.class);
+
+        if (interactiveMessage == null) {
+            //TODO: debug log
+            return resultNoContent();
+        }
+
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), interactiveMessage.token)) {
             return resultBadRequest(messages, "error.request.not.verified");
         }
@@ -79,7 +85,14 @@ public class UserActionController extends Controller {
     }
 
     private CompletionStage<Result> handleUserAction(MessageHandler messages, InteractiveMessage iMessage) {
+
+        if (isUserActionMissingValues(iMessage)) {
+            // TODO: debug log
+            return resultNoContent();
+        }
+
         var action = iMessage.actions.get(0);
+
         var dbKey = new AnalyticsKey();
         dbKey.teamId = iMessage.team.id;
         dbKey.channelId = iMessage.channel.id;
@@ -87,6 +100,10 @@ public class UserActionController extends Controller {
         if (action.value.equals("no")) {
             _analyticsDb.incrementIgnoredMessageCounts(dbKey);
 
+            if (iMessage.responseUrl == null) {
+                // TODO: debug log
+                return resultNoContent();
+            }
             return _slackService.deleteMessage(iMessage).thenApplyAsync(slackResponse ->
                             slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
                     , _ec.current());
@@ -111,12 +128,13 @@ public class UserActionController extends Controller {
         return resultNoContent();
     }
 
-    public CompletionStage<Result> handleReplaceMessage(MessageHandler messages, InteractiveMessage interactiveMessage) {
+    public CompletionStage<Result> handleReplaceMessage(MessageHandler messages, InteractiveMessage iMessage) {
 
         // if we're directly replacing the message, we don't need to keep the original version
         // as the 'name' attribute of the action, and we can put the correction there instead.
         // then we can remove this second call to the bias correct service
-        var originalPost = interactiveMessage.actions.get(0).name;
+        var originalPost = iMessage.actions.get(0).name;
+
         var correctorResult = _biasCorrector.getCorrection(originalPost);
         return correctorResult.thenComposeAsync(correction -> {
 
@@ -125,12 +143,21 @@ public class UserActionController extends Controller {
             }
 
             var tokenKey = new TokenKey();
-            tokenKey.teamId = interactiveMessage.team.id;
-            tokenKey.userId = interactiveMessage.user.id;
+            tokenKey.teamId = iMessage.team.id;
+            tokenKey.userId = iMessage.user.id;
 
             // todo: log if slackresponse.ok == false
-            return _slackService.postReplacement(messages, interactiveMessage, correction, _tokenDb.getUserToken(tokenKey))
+            return _slackService.postReplacement(messages, iMessage, correction, _tokenDb.getUserToken(tokenKey))
                     .thenApplyAsync(slackResponse -> noContent(), _ec.current());
         }, _ec.current());
+    }
+
+    private static boolean isUserActionMissingValues(InteractiveMessage iMessage) {
+
+        return iMessage.actions == null || iMessage.actions.get(0) == null || iMessage.actions.get(0).name == null
+                || iMessage.team == null || iMessage.team.id == null
+                || iMessage.channel == null || iMessage.channel.id == null
+                || iMessage.user == null || iMessage.user.id == null || iMessage.user.name == null;
+
     }
 }

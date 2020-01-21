@@ -68,17 +68,17 @@ public class EventController extends Controller {
         var request = httpRequest.body().parseJson(Request.class);
 
         if (request.isEmpty()) {
-            return resultBadRequest(messages,"error.invalid.request");
+            return resultBadRequest(messages, "error.invalid.request");
         }
 
         var eventRequest = request.get();
 
-        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
-            return resultBadRequest(messages, "error.request.not.verified");
-        }
-
         if (eventRequest.type == null) {
             return resultBadRequest(messages, "error.missing.type");
+        }
+
+        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
+            return resultBadRequest(messages, "error.request.not.verified");
         }
 
         if (eventRequest.type.equals("url_verification")) {

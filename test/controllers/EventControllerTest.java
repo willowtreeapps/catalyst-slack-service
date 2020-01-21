@@ -52,6 +52,7 @@ public class EventControllerTest extends WithApplication {
     public void testInvalidToken() {
         var eventRequest = new EventController.Request();
         eventRequest.token = "invalid_token";
+        eventRequest.type = "event_callback";
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));

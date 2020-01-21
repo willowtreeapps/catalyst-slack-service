@@ -123,6 +123,10 @@ public class UserActionControllerTest extends WithApplication {
         interactiveMessage.team.id = "TEAM123";
         interactiveMessage.channel = new InteractiveMessage.Channel();
         interactiveMessage.channel.id = "CHANNEL123";
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
+        interactiveMessage.responseUrl = "/api/response_url";
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -154,6 +158,9 @@ public class UserActionControllerTest extends WithApplication {
         interactiveMessage.team.id = "TEAM123";
         interactiveMessage.channel = new InteractiveMessage.Channel();
         interactiveMessage.channel.id = "CHANNEL123";
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -187,6 +194,7 @@ public class UserActionControllerTest extends WithApplication {
         interactiveMessage.channel.id = "CHANNEL123";
         interactiveMessage.user = new InteractiveMessage.User();
         interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -220,6 +228,7 @@ public class UserActionControllerTest extends WithApplication {
         interactiveMessage.channel.id = "CHANNEL123";
         interactiveMessage.user = new InteractiveMessage.User();
         interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 

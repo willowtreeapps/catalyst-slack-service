@@ -92,14 +92,12 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public CompletionStage<SlackResponse> postChannelJoin(final MessageHandler messages, final Event event) {
 
-        String url;
-        Message message;
-        if (event.user == null || event.user.equals(_config.getBotId())) {
+        String url = _config.getPostEphemeralUrl();
+        Message message = generateUserJoinedMessage(messages, event);
+
+        if (_config.getBotId().equals(event.user)) {
             url = _config.getPostMessageUrl();
             message = generatePluginAddedMessage(messages, event);
-        } else {
-            url = _config.getPostEphemeralUrl();
-            message = generateUserJoinedMessage(messages, event);
         }
 
         return postReply(url, message, _config.getAppOauthToken());

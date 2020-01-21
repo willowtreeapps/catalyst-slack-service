@@ -43,14 +43,12 @@ public class HelpController extends Controller {
             return noContent();
         }
 
-        String message;
+        String message = messages.get("message.plugin.info");
         var text = body.get("text");
         if (text == null || text.length != 1) {
             message = messages.get("message.specify.action");
         } else if (!text[0].equals("help")) {
             message = messages.get("message.unsupported.action", text[0]);
-        } else {
-            message = messages.get("message.plugin.info");
         }
 
         return ok(Json.toJson(Map.of("text", message)));
