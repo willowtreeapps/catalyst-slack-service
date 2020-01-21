@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
 public class BiasCorrector implements MessageCorrector, WSBodyReadables {
+    private final static String CONTENT_TYPE_JSON = "application/json";
 
     private static class Request {
         public String text;
@@ -35,7 +36,7 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
         var bcInput = new Request(input);
 
         var request = _wsClient.url(_config.getBiasCorrectUrl())
-                .setContentType("application/json");
+                .setContentType(CONTENT_TYPE_JSON);
 
         var jsonPromise = request.post(Json.toJson(bcInput));
 

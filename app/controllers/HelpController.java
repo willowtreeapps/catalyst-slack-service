@@ -7,6 +7,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import util.AppConfig;
 import util.MessageHandler;
+import util.PayloadHelper;
 import util.RequestVerifier;
 
 import javax.inject.Inject;
@@ -16,6 +17,12 @@ public class HelpController extends Controller {
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
+
+    private final static String BIAS_CORRECT = "/bias-correct-v2";
+    private final static String TOKEN = "token";
+    private final static String COMMAND = "command";
+    private final static String TEXT = "text";
+    private final static String HELP = "help";
 
     @Inject
     public HelpController(AppConfig config, MessagesApi messagesApi) {
@@ -30,27 +37,32 @@ public class HelpController extends Controller {
             return noContent();
         }
 
-        var token = body.get("token");
+
+        var token = PayloadHelper.getFirstArrayValue(body.get(TOKEN));
+        if (token.isEmpty()) {
+            //TODO: debug log
+            return noContent();
+        }
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
 
-        if (token == null || token.length != 1 ||
-                !RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token[0])) {
-            return badRequest(messages.get("error.request.not.verified"));
+        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token.get())) {
+            return badRequest(messages.get(MessageHandler.REQUEST_NOT_VERIFIED));
         }
 
-        var command = body.get("command");
-        if (command == null || command.length != 1 || !command[0].equals("/bias-correct-v2")) {
+        var command = PayloadHelper.getFirstArrayValue(body.get(COMMAND));
+        if (command.isEmpty() || !command.get().equals(BIAS_CORRECT)) {
             return noContent();
         }
 
-        String message = messages.get("message.plugin.info");
-        var text = body.get("text");
-        if (text == null || text.length != 1) {
-            message = messages.get("message.specify.action");
-        } else if (!text[0].equals("help")) {
-            message = messages.get("message.unsupported.action", text[0]);
+        var message = messages.get(MessageHandler.PLUGIN_INFO);
+        var text = PayloadHelper.getFirstArrayValue(body.get(TEXT));
+
+        if (text.isEmpty()) {
+            message = messages.get(MessageHandler.SPECIFY_ACTION);
+        } else if (!text.get().equals(HELP)) {
+            message = messages.get(MessageHandler.UNSUPPORTED_ACTION, text.get());
         }
 
-        return ok(Json.toJson(Map.of("text", message)));
+        return ok(Json.toJson(Map.of(TEXT, message)));
     }
 }

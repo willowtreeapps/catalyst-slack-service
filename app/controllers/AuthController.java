@@ -10,6 +10,7 @@ import play.mvc.Result;
 import services.AppService;
 import util.AppConfig;
 import util.MessageHandler;
+import util.ResultHelper;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -39,9 +40,7 @@ public class AuthController extends Controller {
 
         if (requestCode.isEmpty()) {
             var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-            return CompletableFuture.completedFuture(badRequest( Json.toJson(Map.of(
-                    "ok", Boolean.valueOf(false),
-                    "error", messages.get("error.missing.code")))));
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CODE);
         }
 
         // send a get request to Slack with the code to get token for authed user

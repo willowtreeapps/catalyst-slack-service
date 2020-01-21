@@ -172,7 +172,7 @@ public class UserActionControllerTest extends WithApplication {
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
-        assertEquals(OK, result.status());
+        assertEquals(NO_CONTENT, result.status());
     }
 
     @Test

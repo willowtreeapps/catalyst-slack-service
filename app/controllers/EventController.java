@@ -1,6 +1,5 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import db.AnalyticsHandler;
 import db.AnalyticsKey;
 import domain.Event;
@@ -15,13 +14,18 @@ import services.MessageCorrector;
 import util.AppConfig;
 import util.MessageHandler;
 import util.RequestVerifier;
+import util.ResultHelper;
 
 import javax.inject.Inject;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class EventController extends Controller {
+    private static final String TYPE_URL_VERIFICATION = "url_verification";
+    private static final String TYPE_EVENT_CALLBACK = "event_callback";
+    private static final String SUBTYPE_CHANNEL_JOIN = "member_joined_channel";
+    private static final String SUBTYPE_MESSAGE = "message";
+    private static final String VERIFICATION_CHALLENGE = "challenge";
 
     public static class Request {
         public String token;
@@ -29,8 +33,6 @@ public class EventController extends Controller {
         public String type;
         public Event event;
     }
-
-    private static final JsonNode SUCCESS = Json.toJson(Map.of("ok", Boolean.valueOf(true)));
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
@@ -50,14 +52,6 @@ public class EventController extends Controller {
         this._db = db;
     }
 
-    private static CompletionStage<Result> resultBadRequest(MessageHandler messages, String error) {
-        return CompletableFuture.completedFuture(badRequest(messages.error(error)));
-    }
-
-    private static CompletionStage<Result> resultOk(JsonNode json) {
-        return CompletableFuture.completedFuture(ok(json));
-    }
-
     /**
      * All event requests will be handled here
      * @param httpRequest
@@ -68,26 +62,26 @@ public class EventController extends Controller {
         var request = httpRequest.body().parseJson(Request.class);
 
         if (request.isEmpty()) {
-            return resultBadRequest(messages, "error.invalid.request");
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
         var eventRequest = request.get();
 
         if (eventRequest.type == null) {
-            return resultBadRequest(messages, "error.missing.type");
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_TYPE);
         }
 
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
-            return resultBadRequest(messages, "error.request.not.verified");
+            return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
-        if (eventRequest.type.equals("url_verification")) {
+        if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
             return handleURLVerification(messages, eventRequest.challenge);
-        } else if (eventRequest.type.equals("event_callback")) {
+        } else if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
             return handleEventCallback(messages, eventRequest.event);
         }
 
-        return resultBadRequest(messages, "error.unsupported.type");
+        return ResultHelper.badRequest(messages, MessageHandler.UNSUPPORTED_TYPE);
     }
 
     /**
@@ -98,10 +92,10 @@ public class EventController extends Controller {
      */
     private CompletionStage<Result> handleURLVerification(final MessageHandler messages, final String challenge) {
         if (challenge == null) {
-            return resultBadRequest(messages, "error.missing.challenge");
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CHALLENGE);
         }
 
-        return resultOk(Json.toJson(Map.of("challenge", challenge)));
+        return ResultHelper.ok(Json.toJson(Map.of(VERIFICATION_CHALLENGE, challenge)));
     }
 
     /**
@@ -112,7 +106,7 @@ public class EventController extends Controller {
      */
     private CompletionStage<Result> handleEventCallback(final MessageHandler messages, final Event event) {
         if (event == null) {
-            return resultBadRequest(messages, "error.invalid.event");
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
         }
 
         var userName = event.username;
@@ -121,11 +115,11 @@ public class EventController extends Controller {
         boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
             userName != null && userName.equals(_config.getBotUserName());
 
-        boolean isMessageEvent = event.type != null && event.type.equals("message") && event.text != null;
-        boolean isChannelJoinEvent = event.type != null && event.type.equals("member_joined_channel");
+        boolean isMessageEvent = event.type != null && event.type.equals(SUBTYPE_MESSAGE) && event.text != null;
+        boolean isChannelJoinEvent = event.type != null && event.type.equals(SUBTYPE_CHANNEL_JOIN);
 
         if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
-            return resultOk(SUCCESS);
+            return ResultHelper.ok();
         }
 
         if (isChannelJoinEvent) {
@@ -147,7 +141,7 @@ public class EventController extends Controller {
         return correctorResult.thenComposeAsync(correction -> {
 
             if (correction.isEmpty()) {
-                return CompletableFuture.completedFuture(ok(SUCCESS));
+                return ResultHelper.ok();
             }
 
             return _slackService.postSuggestion(messages, event, correction)

@@ -14,6 +14,8 @@ public class RequestVerifier {
     private static final String ALGORITHM = "HmacSHA256";
     private static final String SIGNATURE_HEADER = "X-Slack-Signature";
     private static final String TIMESTAMP_HEADER = "X-Slack-Request-Timestamp";
+    private static final String CHARSET = "UTF-8";
+    private static final String PREFIX = "v0";
 
     private static boolean headersExist(Http.Request request) {
         var slackSignature = request.header(SIGNATURE_HEADER);
@@ -39,11 +41,11 @@ public class RequestVerifier {
         try {
             var requestBody = request.body();
             var body = requestBody == null ? "" :
-                    new String(requestBody.asBytes().toArray(), "UTF-8");
-            var baseString = String.join(":", "v0", timestamp.get(), body );
+                    new String(requestBody.asBytes().toArray(), CHARSET);
+            var baseString = String.join(":", PREFIX, timestamp.get(), body );
             var sha256_HMAC = Mac.getInstance(ALGORITHM);
             sha256_HMAC.init(secretKey);
-            hash = "v0=" + Hex.encodeHexString(sha256_HMAC.doFinal(baseString.getBytes()));
+            hash = PREFIX + "=" + Hex.encodeHexString(sha256_HMAC.doFinal(baseString.getBytes()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
             // TODO: logging
             e.printStackTrace();

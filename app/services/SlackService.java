@@ -14,6 +14,15 @@ import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 public class SlackService implements AppService, WSBodyReadables {
+    private final static String CONTENT_TYPE_JSON = "application/json";
+    private final static String HEADER_AUTHORIZATION = "Authorization";
+    private final static String QUERY_PARAM_CODE = "code";
+    private final static String QUERY_PARAM_ID = "client_id";
+    private final static String QUERY_PARAM_SECRET = "client_secret";
+    private final static String POST_DELETE_ORIGINAL = "delete_original";
+    private final static String BTN_STYLE_PRIMARY = "primary";
+    private final static String BTN_STYLE_DANGER = "danger";
+
 
     private final WSClient _wsClient;
     private final AppConfig _config;
@@ -28,14 +37,14 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
         var actions = new ArrayList<Action>();
-        actions.add(new Action(event.text, msg.get("button.correct"), "yes", "primary", null));
-        actions.add(new Action(event.text, msg.get("button.no"), "no", "danger", null));
-        actions.add(new Action(event.text, msg.get("button.learn"), "learn_more", null, null));
+        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_CORRECT), Action.YES, BTN_STYLE_PRIMARY, null));
+        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_NO), Action.NO, BTN_STYLE_DANGER, null));
+        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, null));
 
         var attachments = new ArrayList<Attachment>();
-        attachments.add(new Attachment(msg.get("message.fallback"), msg.get("message.title"), event.ts, actions));
+        attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), msg.get(MessageHandler.TITLE), event.ts, actions));
 
-        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, msg.get("message.suggestion",correction), attachments);
+        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, msg.get(MessageHandler.SUGGESTION, correction), attachments);
 
         return message;
     }
@@ -48,8 +57,8 @@ public class SlackService implements AppService, WSBodyReadables {
     private CompletionStage<SlackResponse> postReply(String url, Message reply, String authToken) {
 
         var request = _wsClient.url(url).
-                setContentType("application/json").
-                addHeader("Authorization", String.format("Bearer %s", authToken));
+                setContentType(CONTENT_TYPE_JSON).
+                addHeader(HEADER_AUTHORIZATION, String.format("Bearer %s", authToken));
 
         var jsonPromise = request.post(Json.toJson(reply));
 
@@ -60,11 +69,11 @@ public class SlackService implements AppService, WSBodyReadables {
 
     private Message generateChannelJoinMessage(MessageHandler msg, Event event) {
         var actions = new ArrayList<Action>();
-        actions.add(new Action(null, msg.get("button.authorize"), "yes", "primary", _config.getAppSigninUrl()));
-        actions.add(new Action(null, msg.get("button.learn"), "learn_more", null, _config.getLearnMoreUrl()));
+        actions.add(new Action(null, msg.get(MessageHandler.BTN_AUTHORIZE), Action.YES, BTN_STYLE_PRIMARY, _config.getAppSigninUrl()));
+        actions.add(new Action(null, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, _config.getLearnMoreUrl()));
 
         var attachments = new ArrayList<Attachment>();
-        attachments.add(new Attachment(msg.get("message.fallback"), null, null, actions));
+        attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), null, null, actions));
 
         var message = new Message(event.channel, _config.getAppOauthToken(), null, null, attachments);
 
@@ -73,8 +82,8 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public Message generatePluginAddedMessage(MessageHandler msg, Event event) {
         var message = generateChannelJoinMessage(msg, event);
-        var leadText = msg.get("message.plugin.added");
-        var fullText = msg.get("message.gender.bias.info", leadText);
+        var leadText = msg.get(MessageHandler.PLUGIN_ADDED);
+        var fullText = msg.get(MessageHandler.GENDER_BIAS_INFO, leadText);
         message.text = fullText;
 
         return message;
@@ -82,8 +91,8 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public Message generateUserJoinedMessage(MessageHandler msg, Event event) {
         var message = generateChannelJoinMessage(msg, event);
-        var leadText = msg.get("message.user.joined");
-        var fullText = msg.get("message.gender.bias.info", leadText);
+        var leadText = msg.get(MessageHandler.USER_JOINED);
+        var fullText = msg.get(MessageHandler.GENDER_BIAS_INFO, leadText);
         message.text = fullText;
         message.user = event.user;
 
@@ -105,9 +114,9 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var request = _wsClient.url(_config.getOauthUrl()).
-                addQueryParameter("code", requestCode).
-                addQueryParameter("client_id", _config.getClientId()).
-                addQueryParameter("client_secret", _config.getClientSecret());
+                addQueryParameter(QUERY_PARAM_CODE, requestCode).
+                addQueryParameter(QUERY_PARAM_ID, _config.getClientId()).
+                addQueryParameter(QUERY_PARAM_SECRET, _config.getClientSecret());
 
         var jsonPromise = request.get();
 
@@ -118,7 +127,7 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
         var message = new Message( iMessage.channel.id, _config.getAppOauthToken(),
-                iMessage.user.id, msg.get("message.learn.more"), null);
+                iMessage.user.id, msg.get(MessageHandler.LEARN_MORE), null);
         message.triggerId = iMessage.triggerId;
         message.asUser = true;
 
@@ -128,7 +137,7 @@ public class SlackService implements AppService, WSBodyReadables {
     public CompletionStage<SlackResponse> postReplacement(
             MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken) {
 
-        var originalPost = iMessage.actions.get(0).name;
+        var originalPost = iMessage.actions.stream().findFirst().get().name;
         var message = new Message( iMessage.channel.id, userToken, iMessage.user.id, correction, null);
         message.triggerId = iMessage.triggerId;
         message.ts = iMessage.callbackId;
@@ -137,7 +146,7 @@ public class SlackService implements AppService, WSBodyReadables {
 
         if (userToken == null) {
             message.token = _config.getAppOauthToken();
-            message.text = msg.get("message.replaced.with", iMessage.user.name, originalPost, correction);
+            message.text = msg.get(MessageHandler.REPLACED_WITH, iMessage.user.name, originalPost, correction);
 
             url = _config.getPostMessageUrl();
         }
@@ -148,9 +157,9 @@ public class SlackService implements AppService, WSBodyReadables {
     public CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage) {
 
         var request = _wsClient.url(iMessage.responseUrl).
-                setContentType("application/json");
+                setContentType(CONTENT_TYPE_JSON);
 
-        var jsonPromise = request.post(Json.toJson(Map.of("delete_original", Boolean.valueOf(true))));
+        var jsonPromise = request.post(Json.toJson(Map.of(POST_DELETE_ORIGINAL, Boolean.valueOf(true))));
 
         return jsonPromise.thenApplyAsync(r ->
                         Json.fromJson(r.getBody(json()), SlackResponse.class)
