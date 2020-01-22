@@ -17,4 +17,6 @@ public interface AppConfig {
     String getRedisHost();
     int getRedisPort();
     String getOauthUrl();
+    String getUpdateUrl();
+    String getAuthorizedUrl();
 }

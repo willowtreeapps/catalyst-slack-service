@@ -74,12 +74,12 @@ public class AuthControllerTest extends WithApplication {
 
         var result = route(app, request);
 
-        assertEquals(OK, result.status());
         var tokenKey = new TokenKey();
         tokenKey.teamId = "TEAM234";
         tokenKey.userId = "USER123";
 
         assertEquals("xoxp-token-123", dbManager.getUserToken(tokenKey));
+        assertEquals(FOUND, result.status());
     }
 
     @Test

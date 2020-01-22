@@ -1,5 +1,4 @@
 error.invalid.request = Invalid request
-error.invalid.token = Invalid slack token
 error.request.not.verified = Request not verified
 error.missing.type = Missing request type
 error.missing.challenge = Missing challenge parameter
@@ -14,6 +13,10 @@ message.plugin.added = The Catalyst *#BiasCorrect Plug-In* has been added to you
 message.user.joined = You have been added to a channel which uses the Catalyst *#BiasCorrect Plug-In*\n
 message.gender.bias.info = {0}.\n Studies show that unconscious gender bias fuels the gender gap. This plug-in is designed to help empower its users to become a catalyst for change, by flagging unconscious gender bias in real-time conversations and offering up alternative bias-free words or phrases for users to consider instead. Hit *Authorize* now to help #BiasCorrect the workplace, once and for all. Use the *bias-correct* command for usage information
 message.plugin.info = The BiasCorrect plug-in helps identify and correct unconscious gender bias in day-to-day messages and conversations.\n Examples: 'she is very emotional', or 'she is very dramatic', or 'she is a nag', or 'she is very temperamental'.\nTry typing one of these messages and see what happens!
+message.learn.more = *Before you hit send, think about it...if she was a he, would you have chosen that word?*\n Unconscious gender bias negatively impacts women’s advancement in the workplace.  Discover tools for overcoming it at <https://catalyst.org/topics/unconscious-bias/>
+message.replaced.with = {0} has replaced {1} with {2}
+message.specify.action = No action specified. Supported actions: [help]
+message.unsupported.action = Unsupported action: {0}.  Supported actions: [help]
 
 button.correct = Bias Correct
 button.no = No
