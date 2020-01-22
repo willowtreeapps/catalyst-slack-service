@@ -20,4 +20,6 @@ jobs:
     - name: Setup sbt
       run: sbt --version && sbt --version
     - name: Run tests
+      env:
+        BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
       run: sbt test
