@@ -52,6 +52,7 @@ public class EventControllerTest extends WithApplication {
     public void testInvalidToken() {
         var eventRequest = new EventController.Request();
         eventRequest.token = "invalid_token";
+        eventRequest.type = "event_callback";
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -61,7 +62,7 @@ public class EventControllerTest extends WithApplication {
         var error = Json.parse(body).path("error").textValue();
 
         assertEquals(BAD_REQUEST, result.status());
-        assertEquals("Invalid slack token", error);
+        assertEquals("Request not verified", error);
     }
 
     @Test
@@ -232,7 +233,7 @@ public class EventControllerTest extends WithApplication {
     }
 
     @Test
-    public void testSigningSecret() {
+    public void testRequestVerified() {
         var event = new Event();
         var eventRequest = new EventController.Request();
         eventRequest.token = "valid_token_123";

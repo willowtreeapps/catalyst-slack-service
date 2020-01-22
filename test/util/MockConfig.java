@@ -18,4 +18,6 @@ public class MockConfig implements AppConfig {
     public String getRedisHost() {return ""; }
     public int getRedisPort() { return 0; }
     public String getOauthUrl() {return "/api/oauth.access";}
+    public String getUpdateUrl() {return "/api/chat.update";}
+    public String getAuthorizedUrl() { return "/authorized"; }
 }

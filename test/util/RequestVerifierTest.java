@@ -33,7 +33,7 @@ public class RequestVerifierTest {
                 return new Http.Headers(headerValues);
             }
         };
-        Assert.assertTrue(RequestVerifier.verified("signing_secret", request));
+        Assert.assertTrue(RequestVerifier.verified(request,  "signing_secret", "", ""));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class RequestVerifierTest {
                 return new Http.Headers(headerValues);
             }
         };
-        Assert.assertTrue(RequestVerifier.verified("signing_secret", request));
+        Assert.assertTrue(RequestVerifier.verified(request, "signing_secret", "", ""));
     }
 
     // Leaving this here below for readability

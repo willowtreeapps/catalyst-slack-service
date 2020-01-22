@@ -10,6 +10,7 @@ import play.mvc.Result;
 import services.AppService;
 import util.AppConfig;
 import util.MessageHandler;
+import util.ResultHelper;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -35,16 +36,11 @@ public class AuthController extends Controller {
      * Handle all oauth requests from Slack.
      */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
-
-        // TODO: verify request?
-
         var requestCode = httpRequest.queryString("code");
 
         if (requestCode.isEmpty()) {
             var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-            return CompletableFuture.completedFuture(badRequest( Json.toJson(Map.of(
-                    "ok", Boolean.valueOf(false),
-                    "error", messages.get("error.missing.code")))));
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CODE);
         }
 
         // send a get request to Slack with the code to get token for authed user
@@ -59,16 +55,12 @@ public class AuthController extends Controller {
             dbKey.teamId = response.teamId;
             dbKey.userId = response.userId;
             _tokenDb.setUserToken(dbKey, response.userToken);
-            //TODO: add to team tokens??
             //TODO: return found(APP_INSTALL_URL)
-            return CompletableFuture.completedFuture(ok(Json.toJson(Map.of(
-                    "ok", response.ok,
-                    "redirect", "authorized page"))));
+            return CompletableFuture.completedFuture(found(_config.getAuthorizedUrl()));
         });
     }
 
     public Result signin() {
-        // TODO: verify if this is the right url
         return found(_config.getAppSigninUrl());
     }
 }
