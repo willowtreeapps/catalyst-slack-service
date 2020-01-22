@@ -3,7 +3,6 @@ package services;
 import domain.CorrectorResponse;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
@@ -16,25 +15,34 @@ import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 
 public class BiasCorrectorTest {
     private WSClient wsClient;
     private Server server;
-    private MockConfig config;
+    private MockConfig config = new MockConfig();
     private BiasCorrector service;
 
     @Test
     public void testCorrect() throws Exception {
+        setupSuccessful();
         var correction = service.getCorrection("she's fabulous")
                 .toCompletableFuture().get(10, TimeUnit.SECONDS);
-
+        tearDown();
         Assert.assertEquals("", correction);
     }
 
-    @Before
-    public void setup() {
-        config = new MockConfig();
+    @Test
+    public void testCorrectorServiceUnavailable() throws Exception {
+        setupFailed();
+        var correction = service.getCorrection("she's fabulous")
+                .toCompletableFuture().get(10, TimeUnit.SECONDS);
+        tearDown();
+        Assert.assertEquals("", correction);
+    }
+
+    public void setupSuccessful() {
 
         var response = new CorrectorResponse();
         response.input = "she's fabulous";
@@ -43,9 +51,24 @@ public class BiasCorrectorTest {
         server = Server.forRouter( (components) -> RoutingDsl
                 .fromComponents(components)
                 .POST(config.getBiasCorrectUrl())
-                .routingTo( request ->
-                        ok(Json.toJson(response))
-                )
+                .routingTo( request -> ok(Json.toJson(response)))
+                .build());
+
+        wsClient = play.test.WSTestClient.newClient(server.httpPort());
+        var ec = new HttpExecutionContext(ForkJoinPool.commonPool());
+
+        service = new BiasCorrector(ec, config, wsClient);
+    }
+
+    public void setupFailed() {
+        var response = new CorrectorResponse();
+        response.input = "she's fabulous";
+        response.correction = "";
+
+        server = Server.forRouter( (components) -> RoutingDsl
+                .fromComponents(components)
+                .POST(config.getBiasCorrectUrl())
+                .routingTo( request -> internalServerError())
                 .build());
 
         wsClient = play.test.WSTestClient.newClient(server.httpPort());

@@ -26,6 +26,8 @@ public class EventController extends Controller {
     private static final String SUBTYPE_CHANNEL_JOIN = "member_joined_channel";
     private static final String SUBTYPE_MESSAGE = "message";
     private static final String VERIFICATION_CHALLENGE = "challenge";
+    private static final String CHANNEL_TYPE_IM = "im";
+    private static final String DIRECT_MESSAGE_HELP = "help";
 
     public static class Request {
         public String token;
@@ -123,8 +125,19 @@ public class EventController extends Controller {
             return handleChannelJoin(messages, event);
         }
 
-        //TODO: handle help request direct im to slackbot
+        var isDirectMessage = CHANNEL_TYPE_IM.equalsIgnoreCase(event.channelType);
+        var isBotMentioned = event.text.contains("@" + _config.getBotId());
+
+        if (event.text.toLowerCase().contains(DIRECT_MESSAGE_HELP) && (isDirectMessage || isBotMentioned)) {
+            return handleHelpRequest(messages, event);
+        }
         return handleUserMessage(messages, event);
+    }
+
+    public CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
+        return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse ->
+                        slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
+                , _ec.current());
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
