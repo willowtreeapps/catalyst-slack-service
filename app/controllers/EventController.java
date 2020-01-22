@@ -109,14 +109,11 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
         }
 
-        var userName = event.username;
-        var botId = event.botId;
+        boolean isBotMessage = _config.getBotId().equals(event.botId) &&
+                _config.getBotUserName().equals(event.username);
 
-        boolean isBotMessage = botId != null && botId.equals(_config.getBotId()) &&
-            userName != null && userName.equals(_config.getBotUserName());
-
-        boolean isMessageEvent = event.type != null && event.type.equals(SUBTYPE_MESSAGE) && event.text != null;
-        boolean isChannelJoinEvent = event.type != null && event.type.equals(SUBTYPE_CHANNEL_JOIN);
+        boolean isMessageEvent = SUBTYPE_MESSAGE.equals(event.type) && event.text != null;
+        boolean isChannelJoinEvent = SUBTYPE_CHANNEL_JOIN.equals(event.type);
 
         if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
             return ResultHelper.ok();
