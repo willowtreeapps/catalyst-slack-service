@@ -6,6 +6,8 @@ import db.TokenHandler;
 import db.TokenKey;
 import domain.Action;
 import domain.InteractiveMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
@@ -20,6 +22,7 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
 public class UserActionController extends Controller {
+    final Logger logger = LoggerFactory.getLogger(UserActionController.class);
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
@@ -52,7 +55,7 @@ public class UserActionController extends Controller {
 
         var payload = PayloadHelper.getFirstArrayValue(body.get(PAYLOAD));
         if (payload.isEmpty()) {
-            //TODO: debug log
+            logger.debug("empty payload");
             return ResultHelper.noContent();
         }
 
@@ -61,11 +64,11 @@ public class UserActionController extends Controller {
         try {
             interactiveMessage = Json.fromJson(Json.parse(payload.get()), InteractiveMessage.class);
         } catch(Exception e) {
-            // TODO: debug log
+            logger.error(e.getMessage());
         }
 
         if (interactiveMessage == null) {
-            //TODO: debug log
+            logger.error("null interactive message");
             return ResultHelper.noContent();
         }
 
@@ -75,7 +78,10 @@ public class UserActionController extends Controller {
 
         if (interactiveMessage.callbackId == null || interactiveMessage.triggerId == null ||
                 interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
-            //TODO: debug log
+            logger.error("null interactive message field");
+            logger.debug("interactive message fields --> callbackId: " + interactiveMessage.callbackId +
+                    ", triggerId: " + interactiveMessage.triggerId +
+                    ", actions: " + interactiveMessage.actions);
             return ResultHelper.noContent();
         }
 
@@ -85,7 +91,8 @@ public class UserActionController extends Controller {
     private CompletionStage<Result> handleUserAction(MessageHandler messages, InteractiveMessage iMessage) {
 
         if (isUserActionMissingValues(iMessage)) {
-            // TODO: debug log
+            logger.error("null user action/team/channel value");
+            logger.debug("user action values --> channel: " + iMessage.channel + ", team: " + iMessage.team + ", user: " + iMessage.user);
             return ResultHelper.noContent();
         }
 
@@ -99,7 +106,7 @@ public class UserActionController extends Controller {
             _analyticsDb.incrementIgnoredMessageCounts(dbKey);
 
             if (iMessage.responseUrl == null) {
-                // TODO: debug log
+                logger.error("null response url, unable to delete message");
                 return ResultHelper.noContent();
             }
             return _slackService.deleteMessage(iMessage).thenApplyAsync(slackResponse ->
@@ -141,9 +148,14 @@ public class UserActionController extends Controller {
             tokenKey.teamId = iMessage.team.id;
             tokenKey.userId = iMessage.user.id;
 
-            // todo: log if slackresponse.ok == false
             return _slackService.postReplacement(messages, iMessage, correction, _tokenDb.getUserToken(tokenKey))
-                    .thenApplyAsync(slackResponse -> noContent(), _ec.current());
+                    .thenApplyAsync(slackResponse -> {
+                        if (!slackResponse.ok) {
+                            logger.error("unable to replace message: " + Json.toJson(slackResponse));
+                        }
+
+                        return noContent();
+                    }, _ec.current());
         }, _ec.current());
     }
 

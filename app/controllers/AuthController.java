@@ -2,6 +2,7 @@ package controllers;
 
 import db.TokenHandler;
 import db.TokenKey;
+import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -46,6 +47,8 @@ public class AuthController extends Controller {
         // send a get request to Slack with the code to get token for authed user
         return _service.getAuthorization(requestCode.get()).thenComposeAsync(response -> {
             if (response.error != null || response.teamId == null || response.userId == null || response.userToken == null) {
+                LoggerFactory.getLogger(AuthController.class).error("get authorization failed. teamId: " + response.teamId +
+                        ", userId: " + response.userId + ", error: " + response.error);
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,
                         "error", response.error))));
@@ -55,7 +58,7 @@ public class AuthController extends Controller {
             dbKey.teamId = response.teamId;
             dbKey.userId = response.userId;
             _tokenDb.setUserToken(dbKey, response.userToken);
-            //TODO: return found(APP_INSTALL_URL)
+
             return CompletableFuture.completedFuture(found(_config.getAuthorizedUrl()));
         });
     }
