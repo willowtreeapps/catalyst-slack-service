@@ -18,6 +18,10 @@ libraryDependencies += "commons-codec" % "commons-codec" % "1.13"
 libraryDependencies += "redis.clients" % "jedis" % "3.2.0"
 // https://mvnrepository.com/artifact/org.mockito/mockito-core
 libraryDependencies += "org.mockito" % "mockito-core" % "3.2.4" % Test
+libraryDependencies += "org.springframework" % "spring-webmvc" % "5.2.1.RELEASE"
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.1"
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.10.1"
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.4.1"
 
 PlayKeys.devSettings := Seq("play.server.http.port" -> "4542")
 
