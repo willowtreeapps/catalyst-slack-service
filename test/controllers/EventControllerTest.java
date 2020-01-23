@@ -325,4 +325,45 @@ public class EventControllerTest extends WithApplication {
         var result = route(app, httpRequest);
         assertEquals(OK, result.status());
     }
+
+    @Test
+    public void testHelpRequestBotMentioned() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.text = "<@valid_bot_id> help";
+        event.user = "USER123";
+        event.type = "message";
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testHelpRequestDirectMessage() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.text = "help";
+        event.user = "USER123";
+        event.type = "message";
+        event.channelType = "im";
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        assertEquals(OK, result.status());
+    }
 }

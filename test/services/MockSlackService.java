@@ -82,4 +82,12 @@ public class MockSlackService implements AppService {
         response.messageTs = "12345.67890";
         return CompletableFuture.completedFuture(response);
     }
+
+    @Override
+    public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
+        var response = new SlackResponse();
+        response.ok = true;
+        response.messageTs = "12345.67890";
+        return CompletableFuture.completedFuture(response);
+    }
 }
