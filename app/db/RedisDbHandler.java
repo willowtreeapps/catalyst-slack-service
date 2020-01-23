@@ -1,6 +1,8 @@
 package db;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -10,6 +12,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
+    final Logger logger = LoggerFactory.getLogger(RedisDbHandler.class);
 
     private JedisPool _jedisPool;
     private static final ZoneId ET = ZoneId.of("America/New_York");
@@ -24,7 +27,8 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
     @Override
     public void setUserToken(TokenKey key, String token) {
         if (key == null || key.teamId == null || key.userId == null || token == null) {
-            //TODO: log
+            logger.error(String.format("set user token failed. teamId: %s, userId: %s, token null ? %s",
+                    key.teamId, key.userId, (token == null)));
             return;
         }
 
@@ -43,6 +47,9 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
         try (Jedis jedis = _jedisPool.getResource()) {
             userToken = jedis.hget( USER_TOKENS, format(key.teamId, key.userId) );
         }
+
+        logger.debug(String.format("token for %s %s %s",
+                key.teamId, key.userId, ((userToken == null) ? " not found" : " found")));
         return userToken;
     }
 
@@ -68,7 +75,7 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
     private void incrementCounts(AnalyticsKey key, String prefix) {
         if (key == null || key.teamId == null || key.channelId == null) {
-            // todo log
+            logger.error(String.format("increment %s counts failed. teamId: %s, channelId: %s", prefix, key.teamId, key.channelId));
             return;
         }
         var dayKey = today();

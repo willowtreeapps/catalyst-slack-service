@@ -1,6 +1,7 @@
 package util;
 
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.LoggerFactory;
 import play.mvc.Http;
 
 import javax.crypto.Mac;
@@ -47,8 +48,7 @@ public class RequestVerifier {
             sha256_HMAC.init(secretKey);
             hash = PREFIX + "=" + Hex.encodeHexString(sha256_HMAC.doFinal(baseString.getBytes()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
-            // TODO: logging
-            e.printStackTrace();
+            LoggerFactory.getLogger(RequestVerifier.class).error(e.getMessage());
         }
         return hash.equals(slackSignature.get());
     }
