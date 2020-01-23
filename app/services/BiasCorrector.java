@@ -1,6 +1,8 @@
 package services;
 
 import domain.CorrectorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSBodyReadables;
@@ -12,6 +14,7 @@ import java.util.concurrent.CompletionStage;
 
 public class BiasCorrector implements MessageCorrector, WSBodyReadables {
     private final static String CONTENT_TYPE_JSON = "application/json";
+    final Logger logger = LoggerFactory.getLogger(BiasCorrector.class);
 
     private static class Request {
         public String text;
@@ -42,6 +45,7 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
 
         return jsonPromise.thenApplyAsync(r -> {
             if (r.getStatus() != 200) {
+                logger.error("corrector service failed. " + r.getStatus());
                 return "";
             }
 

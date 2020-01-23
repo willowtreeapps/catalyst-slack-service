@@ -3,6 +3,8 @@ package controllers;
 import db.AnalyticsHandler;
 import db.AnalyticsKey;
 import domain.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 public class EventController extends Controller {
+    final Logger logger = LoggerFactory.getLogger(EventController.class);
+
     private static final String TYPE_URL_VERIFICATION = "url_verification";
     private static final String TYPE_EVENT_CALLBACK = "event_callback";
     private static final String SUBTYPE_CHANNEL_JOIN = "member_joined_channel";
@@ -77,6 +81,7 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
+        logger.debug(String.format("incoming event --> %s", Json.toJson(eventRequest).toString()));
         if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
@@ -163,8 +168,13 @@ public class EventController extends Controller {
 
     public CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
 
-        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse ->
-            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
-        , _ec.current());
+        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse -> {
+            var json = Json.toJson(slackResponse);
+            if (!slackResponse.ok) {
+                logger.error(String.format("channel join failed. teamId: %s, userId: %s, response: %s", event.team, event.user, json));
+                return badRequest(json);
+            }
+            return ok(json);
+        }, _ec.current());
     }
 }
