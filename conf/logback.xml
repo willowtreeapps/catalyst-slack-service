@@ -21,11 +21,14 @@
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
-  <!-- TODO remove these before release -->
+  <!-- TODO remove these before release BGC-83 -->
   <logger name="controllers.EventController" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
   <logger name="controllers.UserActionController" level="DEBUG" >
+    <appender-ref ref="ASYNCSTDOUT"/>
+  </logger>
+  <logger name="controllers.HelpController" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
   <logger name="db.RedisDbHandler" level="DEBUG" >

@@ -47,8 +47,8 @@ public class AuthController extends Controller {
         // send a get request to Slack with the code to get token for authed user
         return _service.getAuthorization(requestCode.get()).thenComposeAsync(response -> {
             if (response.error != null || response.teamId == null || response.userId == null || response.userToken == null) {
-                LoggerFactory.getLogger(AuthController.class).error("get authorization failed. teamId: " + response.teamId +
-                        ", userId: " + response.userId + ", error: " + response.error);
+                LoggerFactory.getLogger(AuthController.class).error(
+                        String.format("get authorization failed. teamId: %s, userId: %s, error: %s", response.teamId, response.userId, response.error));
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,
                         "error", response.error))));

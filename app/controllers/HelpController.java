@@ -53,17 +53,19 @@ public class HelpController extends Controller {
             return badRequest(messages.get(MessageHandler.REQUEST_NOT_VERIFIED));
         }
 
-        logger.debug("command: " + body.get(COMMAND) + ", text:" + body.get(TEXT));
 
         var command = PayloadHelper.getFirstArrayValue(body.get(COMMAND));
+        var text = PayloadHelper.getFirstArrayValue(body.get(TEXT));
+
+        logger.debug(String.format("command: %s, text: %s", command, text));
+
         if (command.isEmpty() || !command.get().equals(BIAS_CORRECT)) {
             return noContent();
         }
 
         var message = messages.get(MessageHandler.PLUGIN_INFO);
-        var text = PayloadHelper.getFirstArrayValue(body.get(TEXT));
 
-        if (text.isEmpty()) {
+        if (text.isEmpty() || text.get().isEmpty()) {
             message = messages.get(MessageHandler.SPECIFY_ACTION);
         } else if (!text.get().equals(HELP)) {
             message = messages.get(MessageHandler.UNSUPPORTED_ACTION, text.get());

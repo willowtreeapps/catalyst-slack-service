@@ -27,7 +27,8 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
     @Override
     public void setUserToken(TokenKey key, String token) {
         if (key == null || key.teamId == null || key.userId == null || token == null) {
-            logger.error("set user token failed. teamId: "+ key.teamId + ", userId: " + key.userId + " token null ? " + (token == null));
+            logger.error(String.format("set user token failed. teamId: %s, userId: %s, token null ? %s",
+                    key.teamId, key.userId, (token == null)));
             return;
         }
 
@@ -47,7 +48,8 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
             userToken = jedis.hget( USER_TOKENS, format(key.teamId, key.userId) );
         }
 
-        logger.debug("token for " + key.teamId + " " + key.userId + ((userToken == null) ? " not found" : " found"));
+        logger.debug(String.format("token for %s %s %s",
+                key.teamId, key.userId, ((userToken == null) ? " not found" : " found")));
         return userToken;
     }
 
@@ -73,7 +75,7 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
     private void incrementCounts(AnalyticsKey key, String prefix) {
         if (key == null || key.teamId == null || key.channelId == null) {
-            logger.error("increment " + prefix + " counts failed. teamId: "+ key.teamId + ", channelId: " + key.channelId);
+            logger.error(String.format("increment %s counts failed. teamId: %s, channelId: %s", prefix, key.teamId, key.channelId));
             return;
         }
         var dayKey = today();

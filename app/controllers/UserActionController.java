@@ -79,9 +79,8 @@ public class UserActionController extends Controller {
         if (interactiveMessage.callbackId == null || interactiveMessage.triggerId == null ||
                 interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
             logger.error("null interactive message field");
-            logger.debug("interactive message fields --> callbackId: " + interactiveMessage.callbackId +
-                    ", triggerId: " + interactiveMessage.triggerId +
-                    ", actions: " + interactiveMessage.actions);
+            logger.debug(String.format("interactive message fields --> callbackId: %s, triggerId: %s, actions: %s",
+                    interactiveMessage.callbackId, interactiveMessage.triggerId, interactiveMessage.actions));
             return ResultHelper.noContent();
         }
 
@@ -92,7 +91,7 @@ public class UserActionController extends Controller {
 
         if (isUserActionMissingValues(iMessage)) {
             logger.error("null user action/team/channel value");
-            logger.debug("user action values --> channel: " + iMessage.channel + ", team: " + iMessage.team + ", user: " + iMessage.user);
+            logger.debug(String.format("user action values --> channel: %s, team: %s, user: %s", iMessage.channel, iMessage.team, iMessage.user));
             return ResultHelper.noContent();
         }
 
@@ -154,6 +153,7 @@ public class UserActionController extends Controller {
                             logger.error("unable to replace message: " + Json.toJson(slackResponse));
                         }
 
+                        logger.debug(String.format("message replaced: %s --> %s", originalPost, correction));
                         return noContent();
                     }, _ec.current());
         }, _ec.current());
