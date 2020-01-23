@@ -24,4 +24,6 @@ public interface AppService {
     CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken);
 
     CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage);
+
+    CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event);
 }

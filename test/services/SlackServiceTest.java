@@ -272,4 +272,19 @@ public class SlackServiceTest {
         Assert.assertEquals(true, response.ok);
         Assert.assertEquals(EPHEMERAL_TS, response.messageTs);
     }
+
+    @Test
+    public void testPostHelpMessage() throws Exception {
+        var event = new Event();
+        event.channel = "valid_channel";
+        event.user = "USER123";
+
+        var response = service.postHelpMessage(msg, event)
+                .toCompletableFuture()
+                .get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals(true, response.ok);
+        Assert.assertEquals(MESSAGE_TS, response.messageTs);
+    }
+
 }

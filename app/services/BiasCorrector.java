@@ -41,6 +41,10 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
         var jsonPromise = request.post(Json.toJson(bcInput));
 
         return jsonPromise.thenApplyAsync(r -> {
+            if (r.getStatus() != 200) {
+                return "";
+            }
+
             var response = Json.fromJson(r.getBody(json()), CorrectorResponse.class);
             return response.input != null && !response.input.equals((response.correction)) ?
                 response.correction : "";

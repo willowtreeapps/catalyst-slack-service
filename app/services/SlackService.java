@@ -165,4 +165,12 @@ public class SlackService implements AppService, WSBodyReadables {
                         Json.fromJson(r.getBody(json()), SlackResponse.class)
                 , _ec.current());
     }
+
+    @Override
+    public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
+        var url = _config.getPostMessageUrl();
+        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, messages.get(MessageHandler.PLUGIN_INFO), null);
+
+        return postReply(url, message, _config.getAppOauthToken());
+    }
 }
