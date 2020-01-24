@@ -9,8 +9,6 @@ public class Message {
     public String channel;
     public String token;
     public String user;
-    @JsonProperty("as_user")
-    public boolean asUser = false;
     public String text;
     @JsonProperty("trigger_id")
     public String triggerId;

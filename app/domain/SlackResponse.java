@@ -7,4 +7,5 @@ public class SlackResponse {
     @JsonProperty("message_ts")
     public String messageTs;
     public String warning;
+    public String error;
 }

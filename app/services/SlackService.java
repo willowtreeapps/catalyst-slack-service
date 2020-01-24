@@ -120,8 +120,7 @@ public class SlackService implements AppService, WSBodyReadables {
 
         var jsonPromise = request.get();
 
-        return jsonPromise.thenApplyAsync(r ->
-            Json.fromJson(r.getBody(json()), AuthResponse.class)
+        return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), AuthResponse.class)
         , _ec.current());
     }
 
@@ -129,7 +128,6 @@ public class SlackService implements AppService, WSBodyReadables {
         var message = new Message( iMessage.channel.id, _config.getAppOauthToken(),
                 iMessage.user.id, msg.get(MessageHandler.LEARN_MORE), null);
         message.triggerId = iMessage.triggerId;
-        message.asUser = true;
 
         return postReply(_config.getPostEphemeralUrl(), message, _config.getAppOauthToken());
     }
@@ -169,8 +167,8 @@ public class SlackService implements AppService, WSBodyReadables {
     @Override
     public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
         var url = _config.getPostMessageUrl();
-        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, messages.get(MessageHandler.PLUGIN_INFO), null);
+        var message = new Message(event.channel, _config.getBotOauthToken(), event.user, messages.get(MessageHandler.PLUGIN_INFO), null);
 
-        return postReply(url, message, _config.getAppOauthToken());
+        return postReply(url, message, _config.getBotOauthToken());
     }
 }

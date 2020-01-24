@@ -30,9 +30,11 @@ public class MockSlackService implements AppService {
             authResponse.error = "request code already used";
         } else {
             authResponse.ok = true;
-            authResponse.teamId = "TEAM234";
-            authResponse.userId = "USER123";
-            authResponse.userToken = "xoxp-token-123";
+            authResponse.team = new AuthResponse.Team();
+            authResponse.team.id = "TEAM234";
+            authResponse.user = new AuthResponse.AuthedUser();
+            authResponse.user.id = "USER123";
+            authResponse.user.accessToken = "xoxp-token-123";
         }
 
         return CompletableFuture.completedFuture(authResponse);
