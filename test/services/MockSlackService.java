@@ -17,11 +17,6 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
-        return null;
-    }
-
-    @Override
     public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var authResponse = new AuthResponse();
 
@@ -49,16 +44,6 @@ public class MockSlackService implements AppService {
             response.ok = false;
         }
         return CompletableFuture.completedFuture(response);
-    }
-
-    @Override
-    public Message generateUserJoinedMessage(MessageHandler msg, Event event) {
-        return null;
-    }
-
-    @Override
-    public Message generatePluginAddedMessage(MessageHandler msg, Event event) {
-        return null;
     }
 
     @Override
