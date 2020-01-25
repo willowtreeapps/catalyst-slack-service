@@ -44,14 +44,14 @@ public class SlackService implements AppService, WSBodyReadables {
         var attachments = new ArrayList<Attachment>();
         attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), msg.get(MessageHandler.TITLE), event.ts, actions));
 
-        var message = new Message(event.channel, _config.getAppOauthToken(), event.user, msg.get(MessageHandler.SUGGESTION, correction), attachments);
+        var message = new Message(event.channel, _config.getBotOauthToken(), event.user, msg.get(MessageHandler.SUGGESTION, correction), attachments);
 
         return message;
     }
 
     public CompletionStage<SlackResponse> postSuggestion(final MessageHandler messages, final Event event, final String correction) {
         var botReply = generateSuggestion(messages, event, correction);
-        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getAppOauthToken());
+        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getBotOauthToken());
     }
 
     private CompletionStage<SlackResponse> postReply(String url, Message reply, String authToken) {
@@ -75,7 +75,7 @@ public class SlackService implements AppService, WSBodyReadables {
         var attachments = new ArrayList<Attachment>();
         attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), null, null, actions));
 
-        var message = new Message(event.channel, _config.getAppOauthToken(), null, null, attachments);
+        var message = new Message(event.channel, _config.getBotOauthToken(), null, null, attachments);
 
         return message;
     }
@@ -109,7 +109,7 @@ public class SlackService implements AppService, WSBodyReadables {
             message = generatePluginAddedMessage(messages, event);
         }
 
-        return postReply(url, message, _config.getAppOauthToken());
+        return postReply(url, message, _config.getBotOauthToken());
     }
 
     public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
@@ -125,11 +125,11 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
-        var message = new Message( iMessage.channel.id, _config.getAppOauthToken(),
+        var message = new Message( iMessage.channel.id, _config.getBotOauthToken(),
                 iMessage.user.id, msg.get(MessageHandler.LEARN_MORE), null);
         message.triggerId = iMessage.triggerId;
 
-        return postReply(_config.getPostEphemeralUrl(), message, _config.getAppOauthToken());
+        return postReply(_config.getPostEphemeralUrl(), message, _config.getBotOauthToken());
     }
 
     public CompletionStage<SlackResponse> postReplacement(
@@ -143,7 +143,7 @@ public class SlackService implements AppService, WSBodyReadables {
         var url = _config.getUpdateUrl();
 
         if (userToken == null) {
-            message.token = _config.getAppOauthToken();
+            message.token = _config.getBotOauthToken();
             message.text = msg.get(MessageHandler.REPLACED_WITH, iMessage.user.name, originalPost, correction);
 
             url = _config.getPostMessageUrl();
