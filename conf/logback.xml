@@ -34,6 +34,9 @@
   <logger name="db.RedisDbHandler" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
+  <logger name="services.SlackService" level="DEBUG" >
+    <appender-ref ref="ASYNCSTDOUT"/>
+  </logger>
   <!-- end of log settings to be removed -->
 
 </configuration>

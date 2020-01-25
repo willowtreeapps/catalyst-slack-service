@@ -1,6 +1,8 @@
 package services;
 
 import domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSBodyReadables;
@@ -10,10 +12,13 @@ import util.MessageHandler;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 public class SlackService implements AppService, WSBodyReadables {
+    final Logger logger = LoggerFactory.getLogger(SlackService.class);
+
     private final static String CONTENT_TYPE_JSON = "application/json";
     private final static String HEADER_AUTHORIZATION = "Authorization";
     private final static String QUERY_PARAM_CODE = "code";
@@ -22,7 +27,6 @@ public class SlackService implements AppService, WSBodyReadables {
     private final static String POST_DELETE_ORIGINAL = "delete_original";
     private final static String BTN_STYLE_PRIMARY = "primary";
     private final static String BTN_STYLE_DANGER = "danger";
-
 
     private final WSClient _wsClient;
     private final AppConfig _config;
@@ -36,46 +40,36 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
-        var actions = new ArrayList<Action>();
-        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_CORRECT), Action.YES, BTN_STYLE_PRIMARY, null));
-        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_NO), Action.NO, BTN_STYLE_DANGER, null));
-        actions.add(new Action(event.text, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, null));
+        var correct = new Action(event.text, msg.get(MessageHandler.BTN_CORRECT), Action.YES, BTN_STYLE_PRIMARY, null);
+        var ignore = new Action(event.text, msg.get(MessageHandler.BTN_NO), Action.NO, BTN_STYLE_DANGER, null);
+        var learnMore = new Action(event.text, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, null);
+        var actions = new ArrayList<>(Arrays.asList(correct, ignore, learnMore));
 
-        var attachments = new ArrayList<Attachment>();
-        attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), msg.get(MessageHandler.TITLE), event.ts, actions));
+        var attachment = new Attachment(msg.get(MessageHandler.FALLBACK), msg.get(MessageHandler.TITLE), event.ts, actions);
+        var attachments = new ArrayList(Arrays.asList(attachment));
 
-        var message = new Message(event.channel, _config.getBotOauthToken(), event.user, msg.get(MessageHandler.SUGGESTION, correction), attachments);
+        var message = new Message();
+        message.channel = event.channel;
+        message.token = _config.getBotOauthToken();
+        message.user = event.user;
+        message.text = msg.get(MessageHandler.SUGGESTION, correction);
+        message.attachments = attachments;
 
         return message;
     }
 
-    public CompletionStage<SlackResponse> postSuggestion(final MessageHandler messages, final Event event, final String correction) {
-        var botReply = generateSuggestion(messages, event, correction);
-        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getBotOauthToken());
-    }
-
-    private CompletionStage<SlackResponse> postReply(String url, Message reply, String authToken) {
-
-        var request = _wsClient.url(url).
-                setContentType(CONTENT_TYPE_JSON).
-                addHeader(HEADER_AUTHORIZATION, String.format("Bearer %s", authToken));
-
-        var jsonPromise = request.post(Json.toJson(reply));
-
-        return jsonPromise.thenApplyAsync(r ->
-            Json.fromJson(r.getBody(json()), SlackResponse.class)
-        , _ec.current());
-    }
-
     private Message generateChannelJoinMessage(MessageHandler msg, Event event) {
-        var actions = new ArrayList<Action>();
-        actions.add(new Action(null, msg.get(MessageHandler.BTN_AUTHORIZE), Action.YES, BTN_STYLE_PRIMARY, _config.getAppSigninUrl()));
-        actions.add(new Action(null, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, _config.getLearnMoreUrl()));
+        var authorize = new Action(null, msg.get(MessageHandler.BTN_AUTHORIZE), Action.YES, BTN_STYLE_PRIMARY, _config.getAppSigninUrl());
+        var learnMore = new Action(null, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, _config.getLearnMoreUrl());
+        var actions = new ArrayList(Arrays.asList(authorize, learnMore));
 
-        var attachments = new ArrayList<Attachment>();
-        attachments.add(new Attachment(msg.get(MessageHandler.FALLBACK), null, null, actions));
+        var attachment = new Attachment(msg.get(MessageHandler.FALLBACK), null, null, actions);
+        var attachments = new ArrayList(Arrays.asList(attachment));
 
-        var message = new Message(event.channel, _config.getBotOauthToken(), null, null, attachments);
+        var message = new Message();
+        message.channel = event.channel;
+        message.token = _config.getBotOauthToken();
+        message.attachments = attachments;
 
         return message;
     }
@@ -99,6 +93,27 @@ public class SlackService implements AppService, WSBodyReadables {
         return message;
     }
 
+    private CompletionStage<SlackResponse> postReply(String url, Message reply, String authToken) {
+
+        var request = _wsClient.url(url).setContentType(CONTENT_TYPE_JSON).
+                addHeader(HEADER_AUTHORIZATION, String.format("Bearer %s", authToken));
+
+        var jsonReply = Json.toJson(reply);
+        var jsonPromise = request.post(jsonReply);
+
+        return jsonPromise.thenApplyAsync(r -> {
+                    var response = r.getBody(json());
+                    logger.debug(String.format("\nposting to slack %s --> %s\n response --> %s", url, jsonReply, response));
+                    return Json.fromJson(response, SlackResponse.class);
+                }
+                , _ec.current());
+    }
+
+    public CompletionStage<SlackResponse> postSuggestion(final MessageHandler messages, final Event event, final String correction) {
+        var botReply = generateSuggestion(messages, event, correction);
+        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getBotOauthToken());
+    }
+
     public CompletionStage<SlackResponse> postChannelJoin(final MessageHandler messages, final Event event) {
 
         String url = _config.getPostEphemeralUrl();
@@ -120,14 +135,15 @@ public class SlackService implements AppService, WSBodyReadables {
 
         var jsonPromise = request.get();
 
-        return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), AuthResponse.class)
-        , _ec.current());
+        return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), AuthResponse.class), _ec.current());
     }
 
     public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
-        var message = new Message( iMessage.channel.id, _config.getBotOauthToken(),
-                iMessage.user.id, msg.get(MessageHandler.LEARN_MORE), null);
-        message.triggerId = iMessage.triggerId;
+        var message = new Message();
+        message.token = _config.getBotOauthToken();
+        message.channel = iMessage.channel.id;
+        message.text = msg.get(MessageHandler.LEARN_MORE);
+        message.user = iMessage.user.id;
 
         return postReply(_config.getPostEphemeralUrl(), message, _config.getBotOauthToken());
     }
@@ -136,8 +152,10 @@ public class SlackService implements AppService, WSBodyReadables {
             MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken) {
 
         var originalPost = iMessage.actions.stream().findFirst().get().name;
-        var message = new Message( iMessage.channel.id, userToken, iMessage.user.id, correction, null);
-        message.triggerId = iMessage.triggerId;
+        var message = new Message();
+        message.token = userToken;
+        message.channel = iMessage.channel.id;
+        message.text = correction;
         message.ts = iMessage.callbackId;
 
         var url = _config.getUpdateUrl();
@@ -154,21 +172,19 @@ public class SlackService implements AppService, WSBodyReadables {
 
     public CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage) {
 
-        var request = _wsClient.url(iMessage.responseUrl).
-                setContentType(CONTENT_TYPE_JSON);
-
+        var request = _wsClient.url(iMessage.responseUrl).setContentType(CONTENT_TYPE_JSON);
         var jsonPromise = request.post(Json.toJson(Map.of(POST_DELETE_ORIGINAL, Boolean.valueOf(true))));
 
-        return jsonPromise.thenApplyAsync(r ->
-                        Json.fromJson(r.getBody(json()), SlackResponse.class)
-                , _ec.current());
+        return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), SlackResponse.class), _ec.current());
     }
 
     @Override
     public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
-        var url = _config.getPostMessageUrl();
-        var message = new Message(event.channel, _config.getBotOauthToken(), event.user, messages.get(MessageHandler.PLUGIN_INFO), null);
+        var message = new Message();
+        message.token = _config.getBotOauthToken();
+        message.channel = event.channel;
+        message.text = messages.get(MessageHandler.PLUGIN_INFO);
 
-        return postReply(url, message, _config.getBotOauthToken());
+        return postReply(_config.getPostMessageUrl(), message, _config.getBotOauthToken());
     }
 }
