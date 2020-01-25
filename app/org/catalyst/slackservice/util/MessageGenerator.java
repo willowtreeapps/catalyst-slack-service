@@ -14,7 +14,7 @@ public class MessageGenerator {
 
     public static Message generateSuggestion(MessageHandler msg, Event event, String correction, String token) {
         var correct = new Action(event.text, msg.get(MessageHandler.BTN_CORRECT), Action.YES, BTN_STYLE_PRIMARY, null);
-        var ignore = new Action(event.text, msg.get(MessageHandler.BTN_NO), Action.NO, BTN_STYLE_DANGER, null);
+        var ignore = new Action(event.text, msg.get(MessageHandler.BTN_IGNORE), Action.NO, BTN_STYLE_DANGER, null);
         var learnMore = new Action(event.text, msg.get(MessageHandler.BTN_LEARN_MORE), Action.LEARN_MORE, null, null);
         var actions = new ArrayList<>(Arrays.asList(correct, ignore, learnMore));
 

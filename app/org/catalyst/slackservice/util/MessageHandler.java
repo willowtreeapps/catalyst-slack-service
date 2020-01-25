@@ -8,7 +8,7 @@ public class MessageHandler {
 
     private final Messages messages;
     public static final String BTN_CORRECT = "button.correct";
-    public static final String BTN_NO = "button.no";
+    public static final String BTN_IGNORE = "button.ignore";
     public static final String BTN_LEARN_MORE = "button.learn";
     public static final String BTN_AUTHORIZE = "button.authorize";
 

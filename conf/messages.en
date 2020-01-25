@@ -19,6 +19,6 @@ message.specify.action = No action specified. Supported actions: [help]
 message.unsupported.action = Unsupported action: {0}.  Supported actions: [help]
 
 button.correct = Bias Correct
-button.no = No
+button.ignore = Ignore
 button.learn = Learn More
 button.authorize = Authorize
