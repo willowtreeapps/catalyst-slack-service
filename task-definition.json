@@ -1,12 +1,12 @@
 {
-  "executionRoleArn": "arn:aws:iam::***REMOVED***:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::<aws-account-id>:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/catalyst-slack-taskdef-dev",
-          "awslogs-region": "***REMOVED***",
+          "awslogs-group": "/ecs/catalyst-slack-taskdef-<environment>",
+          "awslogs-region": "<aws-region>",
           "awslogs-stream-prefix": "ecs"
         }
       },
@@ -31,57 +31,57 @@
       ],
       "secrets": [
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/BIAS_CORRECT_URL",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BIAS_CORRECT_URL",
           "name": "BIAS_CORRECT_URL"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/PLAY_SECRET_KEY",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/PLAY_SECRET_KEY",
           "name": "PLAY_SECRET_KEY"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/SLACK_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_TOKEN",
           "name": "SLACK_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/BOT_ID",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_ID",
           "name": "BOT_ID"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/BOT_USERNAME",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_USERNAME",
           "name": "BOT_USERNAME"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/APP_OAUTH_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/APP_OAUTH_TOKEN",
           "name": "APP_OAUTH_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/BOT_OAUTH_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_OAUTH_TOKEN",
           "name": "BOT_OAUTH_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/SLACK_SIGNING_SECRET",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_SIGNING_SECRET",
           "name": "SLACK_SIGNING_SECRET"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/REDIS_HOST",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/REDIS_HOST",
           "name": "REDIS_HOST"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/SLACK_CLIENT_ID",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_CLIENT_ID",
           "name": "SLACK_CLIENT_ID"
         },
         {
-          "valueFrom": "arn:aws:ssm:***REMOVED***:***REMOVED***:parameter/SLACK_CLIENT_SECRET",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_CLIENT_SECRET",
           "name": "SLACK_CLIENT_SECRET"
         }
       ],
       "memory": 512,
-      "image": "***REMOVED***.dkr.ecr.***REMOVED***.amazonaws.com/catalyst-slack-service:latest",
+      "image": "<aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/catalyst-slack-service:latest",
       "name": "slack-image"
     }
   ],
-  "taskRoleArn": "arn:aws:iam::***REMOVED***:role/ecsTaskExecutionRole",
-  "family": "catalyst-slack-taskdef-dev",
+  "taskRoleArn": "arn:aws:iam::<aws-account-id>:role/ecsTaskExecutionRole",
+  "family": "catalyst-slack-taskdef-<environment>",
   "requiresCompatibilities": [
     "EC2"
   ]
