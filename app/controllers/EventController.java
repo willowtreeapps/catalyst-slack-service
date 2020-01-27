@@ -140,9 +140,11 @@ public class EventController extends Controller {
     }
 
     public CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
-        return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse ->
-                        slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
-                , _ec.current());
+        return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse -> {
+            var response = Json.toJson(slackResponse);
+            logger.debug(String.format("help request " + response));
+            return slackResponse.ok ? ok(response) : badRequest(response);
+        } , _ec.current());
     }
 
     public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
