@@ -49,13 +49,9 @@ public class UserActionController extends Controller {
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var body = httpRequest.body().asFormUrlEncoded();
 
-        if (body == null) {
-            return ResultHelper.noContent();
-        }
-
-        var payload = PayloadHelper.getFirstArrayValue(body.get(PAYLOAD));
-        if (payload.isEmpty()) {
-            logger.debug("empty payload");
+        var payload = body == null ? null : PayloadHelper.getFirstArrayValue(body.get(PAYLOAD));
+        if (payload == null || payload.isEmpty()) {
+            logger.debug("empty user action payload");
             return ResultHelper.noContent();
         }
 
@@ -72,16 +68,15 @@ public class UserActionController extends Controller {
             return ResultHelper.noContent();
         }
 
-        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), interactiveMessage.token)) {
-            return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
+        if (interactiveMessage.callbackId == null || interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
+            logger.error("null interactive message field");
+            logger.debug(String.format("interactive message fields --> callbackId: %s, actions: %s",
+                    interactiveMessage.callbackId, interactiveMessage.actions));
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_INTERACTIVE_MESSAGE_FIELDS);
         }
 
-        if (interactiveMessage.callbackId == null || interactiveMessage.triggerId == null ||
-                interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
-            logger.error("null interactive message field");
-            logger.debug(String.format("interactive message fields --> callbackId: %s, triggerId: %s, actions: %s",
-                    interactiveMessage.callbackId, interactiveMessage.triggerId, interactiveMessage.actions));
-            return ResultHelper.noContent();
+        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), interactiveMessage.token)) {
+            return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
         return handleUserAction(messages, interactiveMessage);
@@ -90,9 +85,10 @@ public class UserActionController extends Controller {
     private CompletionStage<Result> handleUserAction(MessageHandler messages, InteractiveMessage iMessage) {
 
         if (isUserActionMissingValues(iMessage)) {
-            logger.error("null user action/team/channel value");
-            logger.debug(String.format("user action values --> channel: %s, team: %s, user: %s", iMessage.channel, iMessage.team, iMessage.user));
-            return ResultHelper.noContent();
+            logger.error("null user action/team/channel/responseUrl value");
+            logger.debug(String.format("user action values --> channel: %s, team: %s, user: %s, responseUrl: %s",
+                iMessage.channel, iMessage.team, iMessage.user, iMessage.responseUrl));
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_USER_ACTION_VALUES);
         }
 
         var action = iMessage.actions.stream().findFirst().get();
@@ -104,20 +100,13 @@ public class UserActionController extends Controller {
         if (action.value.equals(Action.NO)) {
             _analyticsDb.incrementIgnoredMessageCounts(dbKey);
 
-            if (iMessage.responseUrl == null) {
-                logger.error("null response url, unable to delete message");
-                return ResultHelper.noContent();
-            }
-            return _slackService.deleteMessage(iMessage).thenApplyAsync(slackResponse ->
-                            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
-                    , _ec.current());
+            return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(slackResponse -> noContent(), _ec.current());
         }
 
         if (action.value.equals(Action.LEARN_MORE)) {
             _analyticsDb.incrementLearnMoreMessageCounts(dbKey);
 
             return _slackService.postLearnMore(messages, iMessage).thenApplyAsync(response -> noContent(), _ec.current());
-
         }
 
         if (action.value.equals(Action.YES)) {
@@ -147,15 +136,17 @@ public class UserActionController extends Controller {
             tokenKey.teamId = iMessage.team.id;
             tokenKey.userId = iMessage.user.id;
 
-            return _slackService.postReplacement(messages, iMessage, correction, _tokenDb.getUserToken(tokenKey))
-                    .thenApplyAsync(slackResponse -> {
-                        if (!slackResponse.ok) {
-                            logger.error("unable to replace message: " + Json.toJson(slackResponse));
-                        }
+            var replacementResult = _slackService.postReplacement(messages, iMessage, correction, _tokenDb.getUserToken(tokenKey));
 
-                        logger.debug(String.format("message replaced: %s --> %s", originalPost, correction));
-                        return noContent();
-                    }, _ec.current());
+            return replacementResult.thenComposeAsync(replacementResponse -> {
+                if (!replacementResponse.ok) {
+                    logger.error("unable to replace message: " + Json.toJson(replacementResponse));
+                    return ResultHelper.noContent();
+                }
+
+                logger.debug(String.format("message replaced: %s --> %s", originalPost, correction));
+                return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(deleteResponse -> noContent(), _ec.current());
+            }, _ec.current());
         }, _ec.current());
     }
 
@@ -165,7 +156,8 @@ public class UserActionController extends Controller {
         return actions.isEmpty() || actions.get().name == null
                 || iMessage.team == null || iMessage.team.id == null
                 || iMessage.channel == null || iMessage.channel.id == null
-                || iMessage.user == null || iMessage.user.id == null || iMessage.user.name == null;
+                || iMessage.user == null || iMessage.user.id == null || iMessage.user.name == null
+                || iMessage.responseUrl == null;
 
     }
 }

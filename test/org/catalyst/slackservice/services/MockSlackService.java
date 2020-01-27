@@ -66,7 +66,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage) {
+    public CompletionStage<SlackResponse> deleteMessage(String responseUrl) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";

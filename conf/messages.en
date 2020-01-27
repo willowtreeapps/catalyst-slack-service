@@ -5,6 +5,8 @@ error.missing.challenge = Missing challenge parameter
 error.unsupported.type = Unsupported request type
 error.invalid.event = Invalid event body
 error.missing.code = Missing request code
+error.missing.user.action.values = Missing values for one or more of the user action required fields
+error.missing.iMessage.fields = Missing callback id or actions array
 
 message.suggestion = Did you mean "{0}"?
 message.title = Before you hit send, think about it... if she was a he, would you have chosen that word?
