@@ -39,7 +39,20 @@ public class ApiTest {
         assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("she is smart")));
     }
 
-    @Test@Ignore
+    @Test
+    public void testMultiWordTrigger() {
+        MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
+                .setText("she ice queen")
+                .setContext("en")
+                .build();
+
+        ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
+
+        assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("she hyper-professional")));
+    }
+
+    @Test
     public void testBiasedSpanishMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
                 .setText("ella es hostil")
@@ -52,7 +65,7 @@ public class ApiTest {
         assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("ella es firme")));
     }
 
-    @Test@Ignore
+    @Test
     public void testSafeSpanishMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
                 .setText("ella es fabulosa")
@@ -82,7 +95,7 @@ public class ApiTest {
     public void testSafeGermanMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
                 .setText("sie ist fabelhaft")
-                .setContext("es")
+                .setContext("de")
                 .build();
 
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
