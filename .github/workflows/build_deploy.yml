@@ -59,6 +59,14 @@ jobs:
           sbt docker:publish
           echo "::set-output name=image::$DOCKER_REPOSITORY/$PROJECT_NAME:$VERSION_NUMBER"
 
+      - name: Initialize task definition
+        id: task-def-init
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ENVIRONMENT: dev
+        run: |
+          sh ./scripts/init_task_definition.sh
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
