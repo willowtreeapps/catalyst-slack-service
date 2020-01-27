@@ -245,7 +245,7 @@ public class EventControllerTest extends WithApplication {
         event.user = "USER123";
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=53322ed06395d118dd3e25e58eae762e50f6478f27d03135bb4bebf501173c06")
+                .header("X-Slack-Signature", "v0=b5fbf5d36be659fd45ded1c17f3032aa97368fafbea484fec4f9c1135aa2de09")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
