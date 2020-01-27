@@ -12,6 +12,7 @@ import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSClient;
 import play.routing.RoutingDsl;
 import play.server.Server;
+import util.MessageGenerator;
 import util.MessageHandler;
 import util.MockConfig;
 
@@ -110,7 +111,7 @@ public class SlackServiceTest {
 
         var correction = "she's so thoughtful";
 
-        var reply = service.generateSuggestion(msg, event, correction);
+        var reply = MessageGenerator.generateSuggestion(msg, event, correction, config.getBotOauthToken());
 
         Assert.assertEquals("Suggested correction", reply.text);
         Assert.assertEquals(event.text, reply.attachments.get(0).actions.get(0).name);
@@ -135,7 +136,8 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = config.getBotId();
 
-        var reply = service.generatePluginAddedMessage(msg, event);
+        var reply = MessageGenerator.generatePluginAddedMessage(msg, event,
+                config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
 
         Assert.assertEquals("Gender bias information", reply.text);
         Assert.assertEquals(null, reply.user);
@@ -148,7 +150,8 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var reply = service.generateUserJoinedMessage(msg, event);
+        var reply = MessageGenerator.generateUserJoinedMessage(msg, event,
+                config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
 
         Assert.assertEquals("Gender bias information", reply.text);
         Assert.assertEquals(event.user, reply.user);

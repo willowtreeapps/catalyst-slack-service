@@ -17,11 +17,6 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public Message generateSuggestion(MessageHandler msg, Event event, String correction) {
-        return null;
-    }
-
-    @Override
     public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var authResponse = new AuthResponse();
 
@@ -30,9 +25,11 @@ public class MockSlackService implements AppService {
             authResponse.error = "request code already used";
         } else {
             authResponse.ok = true;
-            authResponse.teamId = "TEAM234";
-            authResponse.userId = "USER123";
-            authResponse.userToken = "xoxp-token-123";
+            authResponse.team = new AuthResponse.Team();
+            authResponse.team.id = "TEAM234";
+            authResponse.user = new AuthResponse.AuthedUser();
+            authResponse.user.id = "USER123";
+            authResponse.user.accessToken = "xoxp-token-123";
         }
 
         return CompletableFuture.completedFuture(authResponse);
@@ -47,16 +44,6 @@ public class MockSlackService implements AppService {
             response.ok = false;
         }
         return CompletableFuture.completedFuture(response);
-    }
-
-    @Override
-    public Message generateUserJoinedMessage(MessageHandler msg, Event event) {
-        return null;
-    }
-
-    @Override
-    public Message generatePluginAddedMessage(MessageHandler msg, Event event) {
-        return null;
     }
 
     @Override
