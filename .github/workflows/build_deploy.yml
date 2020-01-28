@@ -44,8 +44,11 @@ jobs:
       - name: Setup sbt
         run: sbt --version && sbt --version
 
-      - name: Run tests
-        run: sbt test
+      - name: Run unit tests
+        run: sbt "testOnly **slackservice*"
+
+      - name: Run api tests
+        run: sbt "testOnly **biascorrectservice.api*"
         env:
           BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
 

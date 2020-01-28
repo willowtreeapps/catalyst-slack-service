@@ -22,19 +22,19 @@
   </root>
 
   <!-- TODO remove these before release BGC-83 -->
-  <logger name="controllers.EventController" level="DEBUG" >
+  <logger name="org.catalyst.slackservice.controllers.EventController" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
-  <logger name="controllers.UserActionController" level="DEBUG" >
+  <logger name="org.catalyst.slackservice.controllers.UserActionController" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
-  <logger name="controllers.HelpController" level="DEBUG" >
+  <logger name="org.catalyst.slackservice.controllers.HelpController" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
-  <logger name="db.RedisDbHandler" level="DEBUG" >
+  <logger name="org.catalyst.slackservice.db.RedisDbHandler" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
-  <logger name="services.SlackService" level="DEBUG" >
+  <logger name="org.catalyst.slackservice.services.SlackService" level="DEBUG" >
     <appender-ref ref="ASYNCSTDOUT"/>
   </logger>
   <!-- end of log settings to be removed -->
