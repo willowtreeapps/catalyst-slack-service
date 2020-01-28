@@ -19,4 +19,6 @@ public class Event {
     public String eventTs;
     @JsonProperty("channel_type")
     public String channelType;
+    @JsonProperty("thread_ts")
+    public String threadTs;
 }
