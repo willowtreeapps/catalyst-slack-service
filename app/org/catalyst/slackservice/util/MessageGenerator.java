@@ -27,6 +27,7 @@ public class MessageGenerator {
         message.user = event.user;
         message.text = msg.get(MessageHandler.SUGGESTION, correction);
         message.attachments = attachments;
+        message.threadTs = event.threadTs;
 
         return message;
     }
