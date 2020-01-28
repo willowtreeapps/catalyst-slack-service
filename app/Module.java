@@ -1,15 +1,15 @@
 import com.google.inject.AbstractModule;
-import db.AnalyticsHandler;
-import db.TokenHandler;
-import db.RedisDbHandler;
+import org.catalyst.slackservice.db.AnalyticsHandler;
+import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.db.RedisDbHandler;
 import redis.clients.jedis.JedisPool;
-import services.AppService;
-import services.BiasCorrector;
-import services.MessageCorrector;
-import services.SlackService;
-import util.AppConfig;
-import db.JedisPoolProvider;
-import util.SlackConfig;
+import org.catalyst.slackservice.services.AppService;
+import org.catalyst.slackservice.services.BiasCorrector;
+import org.catalyst.slackservice.services.MessageCorrector;
+import org.catalyst.slackservice.services.SlackService;
+import org.catalyst.slackservice.util.AppConfig;
+import org.catalyst.slackservice.db.JedisPoolProvider;
+import org.catalyst.slackservice.util.SlackConfig;
 
 public class Module extends AbstractModule {
 
