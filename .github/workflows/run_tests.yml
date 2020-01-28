@@ -22,4 +22,4 @@ jobs:
     - name: Run tests
       env:
         BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
-      run: sbt testOnly "org.catalyst.biascorrectservice.api"
+      run: sbt "testOnly **.ApiTest"
