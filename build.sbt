@@ -22,6 +22,7 @@ libraryDependencies += "org.springframework" % "spring-webmvc" % "5.2.1.RELEASE"
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.1"
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.10.1"
 libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.4.1"
+libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.1" % "test"
 
 PlayKeys.devSettings := Seq("play.server.http.port" -> "4542")
 
