@@ -31,47 +31,47 @@
       ],
       "secrets": [
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BIAS_CORRECT_URL",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BIAS_CORRECT_URL",
           "name": "BIAS_CORRECT_URL"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/PLAY_SECRET_KEY",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/PLAY_SECRET_KEY",
           "name": "PLAY_SECRET_KEY"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_TOKEN",
           "name": "SLACK_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_ID",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_ID",
           "name": "BOT_ID"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_USERNAME",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_USERNAME",
           "name": "BOT_USERNAME"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/APP_OAUTH_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/APP_OAUTH_TOKEN",
           "name": "APP_OAUTH_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/BOT_OAUTH_TOKEN",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_OAUTH_TOKEN",
           "name": "BOT_OAUTH_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_SIGNING_SECRET",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_SIGNING_SECRET",
           "name": "SLACK_SIGNING_SECRET"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/REDIS_HOST",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/REDIS_HOST",
           "name": "REDIS_HOST"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_CLIENT_ID",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_CLIENT_ID",
           "name": "SLACK_CLIENT_ID"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/SLACK_CLIENT_SECRET",
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_CLIENT_SECRET",
           "name": "SLACK_CLIENT_SECRET"
         }
       ],
