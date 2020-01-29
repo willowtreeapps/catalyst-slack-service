@@ -46,7 +46,7 @@ public class SlackService implements AppService, WSBodyReadables {
 
         return jsonPromise.thenApplyAsync(r -> {
             var response = r.getBody(json());
-            logger.debug(String.format("\nposting to slack %s --> %s\n response --> %s", url, jsonReply, response));
+            logger.debug("\nposting to slack {} --> {}\nresponse --> {}", url, jsonReply, response);
             return Json.fromJson(response, SlackResponse.class);
         }, _ec.current());
     }

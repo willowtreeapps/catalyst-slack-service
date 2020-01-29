@@ -51,7 +51,7 @@ public class AuthController extends Controller {
             var token = response.user != null ? response.user.accessToken : null;
             if (response.error != null || teamId == null || userId == null || token == null) {
                 LoggerFactory.getLogger(AuthController.class).error(
-                    String.format("get authorization failed. teamId: %s, userId: %s, null token?: %s, error: %s", teamId, userId, (token == null), response.error));
+                    "get authorization failed. teamId: {}, userId: {}, null token?: {}, error: {}", teamId, userId, (token == null), response.error);
 
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,

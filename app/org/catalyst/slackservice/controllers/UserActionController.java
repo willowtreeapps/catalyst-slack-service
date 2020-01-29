@@ -70,8 +70,7 @@ public class UserActionController extends Controller {
 
         if (interactiveMessage.callbackId == null || interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
             logger.error("null interactive message field");
-            logger.debug(String.format("interactive message fields --> callbackId: %s, actions: %s",
-                    interactiveMessage.callbackId, interactiveMessage.actions));
+            logger.debug("interactive message fields --> callbackId: {}, actions: {}", interactiveMessage.callbackId, interactiveMessage.actions);
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_INTERACTIVE_MESSAGE_FIELDS);
         }
 
@@ -86,8 +85,7 @@ public class UserActionController extends Controller {
 
         if (isUserActionMissingValues(iMessage)) {
             logger.error("null user action/team/channel/responseUrl value");
-            logger.debug(String.format("user action values --> channel: %s, team: %s, user: %s, responseUrl: %s",
-                iMessage.channel, iMessage.team, iMessage.user, iMessage.responseUrl));
+            logger.debug("user action values --> channel: {}, team: {}, user: {}, responseUrl: {}", iMessage.channel, iMessage.team, iMessage.user, iMessage.responseUrl);
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_USER_ACTION_VALUES);
         }
 
@@ -140,11 +138,11 @@ public class UserActionController extends Controller {
 
             return replacementResult.thenComposeAsync(replacementResponse -> {
                 if (!replacementResponse.ok) {
-                    logger.error("unable to replace message: " + Json.toJson(replacementResponse));
+                    logger.error("unable to replace message: {}", Json.toJson(replacementResponse));
                     return ResultHelper.noContent();
                 }
 
-                logger.debug(String.format("message replaced: %s --> %s", originalPost, correction));
+                logger.debug("message replaced: {} --> {}", originalPost, correction);
                 return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(deleteResponse -> noContent(), _ec.current());
             }, _ec.current());
         }, _ec.current());
