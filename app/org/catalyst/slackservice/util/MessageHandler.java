@@ -8,7 +8,7 @@ public class MessageHandler {
 
     private final Messages messages;
     public static final String BTN_CORRECT = "button.correct";
-    public static final String BTN_NO = "button.no";
+    public static final String BTN_IGNORE = "button.ignore";
     public static final String BTN_LEARN_MORE = "button.learn";
     public static final String BTN_AUTHORIZE = "button.authorize";
 
@@ -19,6 +19,8 @@ public class MessageHandler {
     public static final String MISSING_CHALLENGE = "error.missing.challenge";
     public static final String INVALID_EVENT = "error.invalid.event";
     public static final String MISSING_CODE = "error.missing.code";
+    public static final String MISSING_USER_ACTION_VALUES = "error.missing.user.action.values";
+    public static final String MISSING_INTERACTIVE_MESSAGE_FIELDS = "error.missing.iMessage.fields";
 
     public static final String PLUGIN_INFO = "message.plugin.info";
     public static final String SPECIFY_ACTION = "message.specify.action";

@@ -81,7 +81,7 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
-        logger.debug(String.format("incoming event --> %s", Json.toJson(eventRequest).toString()));
+        logger.debug("incoming event --> {}", Json.toJson(eventRequest).toString());
         if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
             return handleURLVerification(messages, eventRequest.challenge);
         } else if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
@@ -142,7 +142,7 @@ public class EventController extends Controller {
     public CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
         return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse -> {
             var response = Json.toJson(slackResponse);
-            logger.debug(String.format("help request " + response));
+            logger.debug("help request {}", response);
             return slackResponse.ok ? ok(response) : badRequest(response);
         } , _ec.current());
     }
@@ -173,7 +173,7 @@ public class EventController extends Controller {
         return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse -> {
             var json = Json.toJson(slackResponse);
             if (!slackResponse.ok) {
-                logger.error(String.format("channel join failed. teamId: %s, userId: %s, response: %s", event.team, event.user, json));
+                logger.error("channel join failed. teamId: {}, userId: {}, response: {}", event.team, event.user, json);
                 return badRequest(json);
             }
             return ok(json);

@@ -45,7 +45,7 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
 
         return jsonPromise.thenApplyAsync(r -> {
             if (r.getStatus() != 200) {
-                logger.error("corrector service failed. " + r.getStatus());
+                logger.error("corrector service failed. {}", r.getStatus());
                 return "";
             }
 

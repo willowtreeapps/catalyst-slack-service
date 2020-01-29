@@ -46,7 +46,7 @@ public class SlackService implements AppService, WSBodyReadables {
 
         return jsonPromise.thenApplyAsync(r -> {
             var response = r.getBody(json());
-            logger.debug(String.format("\nposting to slack %s --> %s\n response --> %s", url, jsonReply, response));
+            logger.debug("\nposting to slack {} --> {}\nresponse --> {}", url, jsonReply, response);
             return Json.fromJson(response, SlackResponse.class);
         }, _ec.current());
     }
@@ -119,9 +119,9 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     @Override
-    public CompletionStage<SlackResponse> deleteMessage(InteractiveMessage iMessage) {
+    public CompletionStage<SlackResponse> deleteMessage(String responseUrl) {
 
-        var request = _wsClient.url(iMessage.responseUrl).setContentType(CONTENT_TYPE_JSON);
+        var request = _wsClient.url(responseUrl).setContentType(CONTENT_TYPE_JSON);
         var jsonPromise = request.post(Json.toJson(Map.of(POST_DELETE_ORIGINAL, Boolean.valueOf(true))));
 
         return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), SlackResponse.class), _ec.current());
