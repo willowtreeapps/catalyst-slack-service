@@ -265,10 +265,9 @@ public class SlackServiceTest {
 
     @Test
     public void testDeleteMessage() throws Exception {
-        var iMessage = new InteractiveMessage();
-        iMessage.responseUrl = INTERACTIVE_RESPONSE_URL;
+        var responseUrl = INTERACTIVE_RESPONSE_URL;
 
-        var response = service.deleteMessage(iMessage)
+        var response = service.deleteMessage(responseUrl)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 

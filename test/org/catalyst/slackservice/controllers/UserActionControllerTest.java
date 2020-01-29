@@ -69,15 +69,18 @@ public class UserActionControllerTest extends WithApplication {
     @Test
     public void testRequestNotVerified() {
         var requestBody = new HashMap<String, String[]>();
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.actions = new ArrayList<>();
+        var action = new Action();
+        action.name = "she's so quiet";
+        action.value = "just_testing";
+
+        var interactiveMessage = getValidInteractiveMessage();
+        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);
 
         var request = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=53322ed06395d118dd3e25e58eae762e50f6478f27d03135bb4bebf501173c06")
+                .header("X-Slack-Signature", "v0=invalidhash")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -89,15 +92,19 @@ public class UserActionControllerTest extends WithApplication {
     @Test
     public void testRequestVerified() {
         var requestBody = new HashMap<String, String[]>();
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.actions = new ArrayList<>();
+
+        var action = new Action();
+        action.name = "she's so quiet";
+        action.value = "just_testing";
+
+        var interactiveMessage = getValidInteractiveMessage();
+        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);
 
         var request = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=ca68c4a0cd5e115d1b4825f87af202e67ee8fbada73d4b3a1cc70dd45557f6af")
+                .header("X-Slack-Signature", "v0=5da66166cdc6af2808a5fc780ea7805f708a3ca8b37a91c89503409fe3f0ba0a")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -118,7 +125,6 @@ public class UserActionControllerTest extends WithApplication {
         interactiveMessage.token = "valid_token_123";
         interactiveMessage.type = "interactive_message";
         interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
         interactiveMessage.team = new InteractiveMessage.Team();
         interactiveMessage.channel = new InteractiveMessage.Channel();
         interactiveMessage.user = new InteractiveMessage.User();
@@ -134,64 +140,18 @@ public class UserActionControllerTest extends WithApplication {
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test
-    public void testNoAction() {
+    public void testIgnoreAction() {
         var requestBody = new HashMap<String, String[]>();
 
         var action = new Action();
         action.name = "she's so quiet";
         action.value = "no";
 
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
-        interactiveMessage.responseUrl = "/api/response_url";
-
-        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
-
-        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
-        requestBody.put("payload", payload);
-
-        var request = new Http.RequestBuilder()
-                .method(POST)
-                .uri(URI).bodyFormArrayValues(requestBody);
-
-        var result = route(app, request);
-        assertEquals(OK, result.status());
-    }
-
-    @Test
-    public void testNoActionMissingResponseUrl() {
-        var requestBody = new HashMap<String, String[]>();
-
-        var action = new Action();
-        action.name = "she's so quiet";
-        action.value = "no";
-
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
+        var interactiveMessage = getValidInteractiveMessage();
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -204,6 +164,24 @@ public class UserActionControllerTest extends WithApplication {
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+    }
+
+    @Test
+    public void testMissingCallbackIdAndActions() {
+        var requestBody = new HashMap<String, String[]>();
+
+        var interactiveMessage = new InteractiveMessage();
+        interactiveMessage.type = "interactive_message";
+
+        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
+        requestBody.put("payload", payload);
+
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(requestBody);
+
+        var result = route(app, request);
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test
@@ -214,18 +192,7 @@ public class UserActionControllerTest extends WithApplication {
         action.name = "she's so quiet";
         action.value = "learn_more";
 
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
+        var interactiveMessage = getValidInteractiveMessage();
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -248,18 +215,7 @@ public class UserActionControllerTest extends WithApplication {
         action.name = "she's so quiet";
         action.value = "yes";
 
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
+        var interactiveMessage = getValidInteractiveMessage();
 
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
@@ -282,19 +238,7 @@ public class UserActionControllerTest extends WithApplication {
         action.name = "she's great";
         action.value = "yes";
 
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
-
+        var interactiveMessage = getValidInteractiveMessage();
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
@@ -316,19 +260,7 @@ public class UserActionControllerTest extends WithApplication {
         action.name = "unknown_name";
         action.value = "unsupported_action";
 
-        var interactiveMessage = new InteractiveMessage();
-        interactiveMessage.token = "valid_token_123";
-        interactiveMessage.type = "interactive_message";
-        interactiveMessage.callbackId = "1234567890.000000";
-        interactiveMessage.triggerId = "910111213145.123456789101.bf6855a370012f701dacec1ea733eb82";
-        interactiveMessage.team = new InteractiveMessage.Team();
-        interactiveMessage.team.id = "TEAM123";
-        interactiveMessage.channel = new InteractiveMessage.Channel();
-        interactiveMessage.channel.id = "CHANNEL123";
-        interactiveMessage.user = new InteractiveMessage.User();
-        interactiveMessage.user.id = "USER123";
-        interactiveMessage.user.name = "Test User";
-
+        var interactiveMessage = getValidInteractiveMessage();
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
 
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
@@ -340,5 +272,22 @@ public class UserActionControllerTest extends WithApplication {
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+    }
+
+    private static InteractiveMessage getValidInteractiveMessage() {
+        var interactiveMessage = new InteractiveMessage();
+        interactiveMessage.token = "valid_token_123";
+        interactiveMessage.type = "interactive_message";
+        interactiveMessage.callbackId = "1234567890.000000";
+        interactiveMessage.team = new InteractiveMessage.Team();
+        interactiveMessage.team.id = "TEAM123";
+        interactiveMessage.channel = new InteractiveMessage.Channel();
+        interactiveMessage.channel.id = "CHANNEL123";
+        interactiveMessage.user = new InteractiveMessage.User();
+        interactiveMessage.user.id = "USER123";
+        interactiveMessage.user.name = "Test User";
+        interactiveMessage.responseUrl = "/api/response_url";
+
+        return interactiveMessage;
     }
 }

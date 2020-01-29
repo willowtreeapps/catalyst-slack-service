@@ -57,7 +57,7 @@ public class HelpController extends Controller {
         var command = PayloadHelper.getFirstArrayValue(body.get(COMMAND));
         var text = PayloadHelper.getFirstArrayValue(body.get(TEXT));
 
-        logger.debug(String.format("command: %s, text: %s", command, text));
+        logger.debug("command: {}, text: {}", command, text);
 
         if (command.isEmpty() || !command.get().equals(BIAS_CORRECT)) {
             return noContent();
