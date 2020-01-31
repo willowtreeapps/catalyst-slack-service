@@ -5,6 +5,7 @@ import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.InteractiveMessage;
 import org.catalyst.slackservice.domain.SlackResponse;
 import org.catalyst.slackservice.util.MessageHandler;
+import org.catalyst.slackservice.util.SlackLocale;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -79,5 +80,10 @@ public class MockSlackService implements AppService {
         response.ok = true;
         response.messageTs = "12345.67890";
         return CompletableFuture.completedFuture(response);
+    }
+
+    @Override
+    public CompletionStage<SlackLocale> getConversationLocale(String channel) {
+        return CompletableFuture.completedFuture(new SlackLocale());
     }
 }

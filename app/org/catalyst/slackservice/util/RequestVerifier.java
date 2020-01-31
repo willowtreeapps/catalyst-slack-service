@@ -41,8 +41,7 @@ public class RequestVerifier {
         var hash = "";
         try {
             var requestBody = request.body();
-            var body = requestBody == null ? "" :
-                    new String(requestBody.asBytes().toArray(), CHARSET);
+            var body = requestBody == null ? "" : new String(requestBody.asBytes().toArray(), CHARSET);
             var baseString = String.join(":", PREFIX, timestamp.get(), body );
             var sha256_HMAC = Mac.getInstance(ALGORITHM);
             sha256_HMAC.init(secretKey);
@@ -50,7 +49,9 @@ public class RequestVerifier {
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
             LoggerFactory.getLogger(RequestVerifier.class).error(e.getMessage());
         }
-        return hash.equals(slackSignature.get());
+        var hashVerified = hash.equals(slackSignature.get());
+        LoggerFactory.getLogger(RequestVerifier.class).debug("hash verified ? {} hash: {} slacksignature: {} timestamp: {}", hashVerified, hash, slackSignature.get(), timestamp.get(), signingSecret);
+        return hashVerified;
     }
 
     public static boolean verified(Http.Request httpRequest, String configSigningSecret, String configToken, String token) {
@@ -58,6 +59,6 @@ public class RequestVerifier {
 
         return
             (headersExist && hashVerified(configSigningSecret, httpRequest)) ||
-            (!headersExist && token != null && token.equals(configToken));
+            (/*!headersExist && */ token != null && token.equals(configToken)); // TODO: BGC-91 signing secret does not seem to match if text has special characters/diacritics (e.g. pére) but pere works
     }
 }

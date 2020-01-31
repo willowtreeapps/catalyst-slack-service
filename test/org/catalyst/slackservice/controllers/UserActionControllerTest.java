@@ -75,6 +75,7 @@ public class UserActionControllerTest extends WithApplication {
 
         var interactiveMessage = getValidInteractiveMessage();
         interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
+        interactiveMessage.token = null;
 
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);

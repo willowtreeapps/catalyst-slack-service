@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.domain.CorrectorResponse;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class BiasCorrectorTest {
     @Test
     public void testCorrect() throws Exception {
         setupSuccessful();
-        var correction = service.getCorrection("she's fabulous")
+        var correction = service.getCorrection("she's fabulous", new SlackLocale())
                 .toCompletableFuture().get(10, TimeUnit.SECONDS);
         tearDown();
         Assert.assertEquals("", correction);
@@ -36,7 +37,7 @@ public class BiasCorrectorTest {
     @Test
     public void testCorrectorServiceUnavailable() throws Exception {
         setupFailed();
-        var correction = service.getCorrection("she's fabulous")
+        var correction = service.getCorrection("she's fabulous", new SlackLocale())
                 .toCompletableFuture().get(10, TimeUnit.SECONDS);
         tearDown();
         Assert.assertEquals("", correction);

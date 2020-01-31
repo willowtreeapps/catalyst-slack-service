@@ -78,16 +78,17 @@ public class UserActionController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
-        return handleUserAction(messages, interactiveMessage);
-    }
-
-    private CompletionStage<Result> handleUserAction(MessageHandler messages, InteractiveMessage iMessage) {
-
-        if (isUserActionMissingValues(iMessage)) {
+        if (isUserActionMissingValues(interactiveMessage)) {
             logger.error("null user action/team/channel/responseUrl value");
-            logger.debug("user action values --> channel: {}, team: {}, user: {}, responseUrl: {}", iMessage.channel, iMessage.team, iMessage.user, iMessage.responseUrl);
+            logger.debug("user action values --> channel: {}, team: {}, user: {}, responseUrl: {}",
+                    interactiveMessage.channel, interactiveMessage.team, interactiveMessage.user, interactiveMessage.responseUrl);
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_USER_ACTION_VALUES);
         }
+
+        return handleUserAction(interactiveMessage);
+    }
+
+    private CompletionStage<Result> handleUserAction(final InteractiveMessage iMessage) {
 
         var action = iMessage.actions.stream().findFirst().get();
 
@@ -95,35 +96,41 @@ public class UserActionController extends Controller {
         dbKey.teamId = iMessage.team.id;
         dbKey.channelId = iMessage.channel.id;
 
-        if (action.value.equals(Action.NO)) {
-            _analyticsDb.incrementIgnoredMessageCounts(dbKey);
+        var localeResult = _slackService.getConversationLocale(iMessage.channel.id);
 
-            return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(slackResponse -> noContent(), _ec.current());
-        }
+        return localeResult.thenComposeAsync(slackLocale -> {
+            var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
 
-        if (action.value.equals(Action.LEARN_MORE)) {
-            _analyticsDb.incrementLearnMoreMessageCounts(dbKey);
+            if (action.value.equals(Action.NO)) {
+                _analyticsDb.incrementIgnoredMessageCounts(dbKey);
 
-            return _slackService.postLearnMore(messages, iMessage).thenApplyAsync(response -> noContent(), _ec.current());
-        }
+                return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(slackResponse -> noContent(), _ec.current());
+            }
 
-        if (action.value.equals(Action.YES)) {
-            _analyticsDb.incrementCorrectedMessageCounts(dbKey);
+            if (action.value.equals(Action.LEARN_MORE)) {
+                _analyticsDb.incrementLearnMoreMessageCounts(dbKey);
 
-            return handleReplaceMessage(messages, iMessage);
-        }
+                return _slackService.postLearnMore(localizedMessages, iMessage).thenApplyAsync(response -> noContent(), _ec.current());
+            }
 
-        return ResultHelper.noContent();
+            if (action.value.equals(Action.YES)) {
+                _analyticsDb.incrementCorrectedMessageCounts(dbKey);
+
+                return handleReplaceMessage(localizedMessages, iMessage);
+            }
+
+            return ResultHelper.noContent();
+        });
     }
 
-    public CompletionStage<Result> handleReplaceMessage(MessageHandler messages, InteractiveMessage iMessage) {
+    private CompletionStage<Result> handleReplaceMessage(final MessageHandler messages, final InteractiveMessage iMessage) {
 
         // if we're directly replacing the message, we don't need to keep the original version
         // as the 'name' attribute of the action, and we can put the correction there instead.
         // then we can remove this second call to the bias correct service
         var originalPost = iMessage.actions.stream().findFirst().get().name;
 
-        var correctorResult = _biasCorrector.getCorrection(originalPost);
+        var correctorResult = _biasCorrector.getCorrection(originalPost, messages.slackLocale);
         return correctorResult.thenComposeAsync(correction -> {
 
             if (correction.isEmpty()) {
@@ -148,7 +155,7 @@ public class UserActionController extends Controller {
         }, _ec.current());
     }
 
-    private static boolean isUserActionMissingValues(InteractiveMessage iMessage) {
+    private static boolean isUserActionMissingValues(final InteractiveMessage iMessage) {
         var actions = iMessage.actions.stream().findFirst();
 
         return actions.isEmpty() || actions.get().name == null

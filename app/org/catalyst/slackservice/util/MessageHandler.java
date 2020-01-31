@@ -1,8 +1,11 @@
 package org.catalyst.slackservice.util;
 
 import play.i18n.Messages;
+import play.i18n.MessagesApi;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MessageHandler {
 
@@ -34,10 +37,16 @@ public class MessageHandler {
     public static final String SUGGESTION = "message.suggestion";
     public static final String TITLE = "message.title";
 
-    // TODO: use tika instead?
+    public SlackLocale slackLocale;
     @Inject
     public MessageHandler(Messages preferred) {
+        slackLocale = new SlackLocale();
         messages = preferred;
+    }
+
+    public MessageHandler(MessagesApi messagesApi, SlackLocale slackLocale) {
+        this.slackLocale = slackLocale;
+        messages = messagesApi.preferred(new ArrayList(Arrays.asList(slackLocale.getLang())));
     }
 
     public String get(String messageKey, Object... args) {
