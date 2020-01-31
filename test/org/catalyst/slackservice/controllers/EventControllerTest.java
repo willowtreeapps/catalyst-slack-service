@@ -53,6 +53,9 @@ public class EventControllerTest extends WithApplication {
         var eventRequest = new EventController.Request();
         eventRequest.token = "invalid_token";
         eventRequest.type = "event_callback";
+        eventRequest.event = new Event();
+        eventRequest.event.channel = "valid_channel_123";
+
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -153,10 +156,8 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testEmptyMessage() {
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = new Event();
+        var eventRequest = getValidEventCallback();
+
         eventRequest.event.type = "message";
         eventRequest.event.text = "";
 
@@ -178,6 +179,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.text = "bot message";
         eventRequest.event.botId = "valid_bot_id";
         eventRequest.event.username = "valid_bot_username";
+        eventRequest.event.channel = "valid_channel_123";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -190,15 +192,10 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testNonBiasedMessage() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.type = "message";
-        event.text = "text";
-        event.user = "USER123";
+        eventRequest.event.type = "message";
+        eventRequest.event.text = "text";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -210,15 +207,10 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testBiasCorrected() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.type = "message";
-        event.text = "she's so quiet";
-        event.user = "USER123";
+        eventRequest.event.type = "message";
+        eventRequest.event.text = "she's so quiet";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -234,18 +226,13 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testRequestVerified() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.type = "message";
-        event.text = "she's so quiet";
-        event.user = "USER123";
+        eventRequest.event.type = "message";
+        eventRequest.event.text = "she's so quiet";
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=b5fbf5d36be659fd45ded1c17f3032aa97368fafbea484fec4f9c1135aa2de09")
+                .header("X-Slack-Signature", "v0=2bcd1287bd7880367967d133c9693f5ea9d769b839ea4f6e9572578b8980dda0")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -260,18 +247,14 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testRequestNotVerified() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.type = "message";
-        event.text = "unverified message";
-        event.user = "USER123";
+        eventRequest.event.type = "message";
+        eventRequest.event.text = "unverified message";
+        eventRequest.token = null;
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=53322ed06395d118dd3e25e58eae762e50f6478f27d03135bb4bebf501173c06")
+                .header("X-Slack-Signature", "v0=2bcd1287bd7880367967d133c9693f5ea9d769b839ea4f6e9572578b8980dda0")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -286,16 +269,10 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testChannelJoinFailed() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.text = "invalid";
-        event.user = "USER123";
-        event.type = "member_joined_channel";
-        event.channel = "valid_channel";
+        eventRequest.event.text = "invalid";
+        eventRequest.event.type = "member_joined_channel";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -307,16 +284,10 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testChannelJoinSuccessful() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.text = "<@USER123> has joined the channel";
-        event.user = "USER123";
-        event.type = "member_joined_channel";
-        event.channel = "valid_channel";
+        eventRequest.event.text = "<@USER123> has joined the channel";
+        eventRequest.event.type = "member_joined_channel";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -328,15 +299,10 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testHelpRequestBotMentioned() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.text = "<@valid_bot_id> help";
-        event.user = "USER123";
-        event.type = "message";
+        eventRequest.event.text = "<@valid_bot_id> help";
+        eventRequest.event.type = "message";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -348,16 +314,11 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testHelpRequestDirectMessage() {
-        var event = new Event();
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = event;
+        var eventRequest = getValidEventCallback();
 
-        event.text = "help";
-        event.user = "USER123";
-        event.type = "message";
-        event.channelType = "im";
+        eventRequest.event.text = "help";
+        eventRequest.event.type = "message";
+        eventRequest.event.channelType = "im";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -365,5 +326,18 @@ public class EventControllerTest extends WithApplication {
 
         var result = route(app, httpRequest);
         assertEquals(OK, result.status());
+    }
+
+    private static EventController.Request getValidEventCallback() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.event = event;
+
+        event.user = "USER123";
+        event.channel = "valid_channel_123";
+
+        return eventRequest;
     }
 }

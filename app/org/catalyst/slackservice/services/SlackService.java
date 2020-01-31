@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.domain.*;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.Json;
@@ -24,6 +25,10 @@ public class SlackService implements AppService, WSBodyReadables {
     private final static String QUERY_PARAM_ID = "client_id";
     private final static String QUERY_PARAM_SECRET = "client_secret";
     private final static String POST_DELETE_ORIGINAL = "delete_original";
+    private final static String QUERY_PARAM_TOKEN = "token";
+    private final static String QUERY_PARAM_CHANNEL = "channel";
+    private final static String QUERY_PARAM_INCLUDE_LOCALE = "include_locale";
+
 
     private final WSClient _wsClient;
     private final AppConfig _config;
@@ -135,5 +140,32 @@ public class SlackService implements AppService, WSBodyReadables {
         message.text = messages.get(MessageHandler.PLUGIN_INFO);
 
         return postReply(_config.getPostMessageUrl(), message, _config.getBotOauthToken());
+    }
+
+    @Override
+    public CompletionStage<SlackLocale> getConversationLocale(String channel) {
+        var request = _wsClient.url(_config.getConversationsInfoUrl()).
+                addQueryParameter(QUERY_PARAM_TOKEN, _config.getBotOauthToken()).
+                addQueryParameter(QUERY_PARAM_CHANNEL, channel).
+                addQueryParameter(QUERY_PARAM_INCLUDE_LOCALE, "true");
+        var jsonPromise = request.get();
+        return jsonPromise.thenApplyAsync(r -> {
+            if (r.getStatus() != 200 ) {
+                logger.error("failed to retrieve user locale. {}", r.getStatus());
+                return new SlackLocale();
+            }
+
+            var responseJson = r.getBody(json());
+            var response = Json.fromJson(responseJson, ConversationsResponse.class);
+
+            if (!response.ok || response.channel == null) {
+                logger.error("failed to retrieve user locale. {}", responseJson);
+                return new SlackLocale();
+            }
+
+            var localeCode = response.channel.locale;
+            logger.debug("user locale " + localeCode);
+            return new SlackLocale(localeCode);
+        } , _ec.current());
     }
 }

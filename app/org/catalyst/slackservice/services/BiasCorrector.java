@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.domain.CorrectorResponse;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.Json;
@@ -18,9 +19,11 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
 
     private static class Request {
         public String text;
+        public String context;
 
-        public Request(String text) {
+        public Request(String text, String context) {
             this.text = text;
+            this.context = context;
         }
     }
 
@@ -35,8 +38,8 @@ public class BiasCorrector implements MessageCorrector, WSBodyReadables {
         this._config = config;
     }
 
-    public CompletionStage<String> getCorrection(String input) {
-        var bcInput = new Request(input);
+    public CompletionStage<String> getCorrection(String input, SlackLocale slackLocale) {
+        var bcInput = new Request(input, slackLocale.getCode());
 
         var request = _wsClient.url(_config.getBiasCorrectUrl())
                 .setContentType(CONTENT_TYPE_JSON);

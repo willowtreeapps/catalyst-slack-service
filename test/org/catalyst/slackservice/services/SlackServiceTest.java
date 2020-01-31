@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 
 public class SlackServiceTest {
@@ -68,6 +69,12 @@ public class SlackServiceTest {
 
         var authResponse = new AuthResponse();
         authResponse.ok = true;
+
+        var convResponse = new ConversationsResponse();
+        convResponse.ok = true;
+        convResponse.channel = new ConversationsResponse.Channel();
+        convResponse.channel.locale = "fr-FR";
+
         server = Server.forRouter( (components) -> RoutingDsl
                 .fromComponents(components)
 
@@ -85,6 +92,9 @@ public class SlackServiceTest {
 
                 .POST(INTERACTIVE_RESPONSE_URL)
                 .routingTo(request -> ok(Json.toJson(ephResponse)))
+
+                .GET(config.getConversationsInfoUrl())
+                .routingTo(request -> ok(Json.toJson(convResponse)))
 
                 .build());
 
@@ -287,6 +297,37 @@ public class SlackServiceTest {
 
         Assert.assertEquals(true, response.ok);
         Assert.assertEquals(MESSAGE_TS, response.messageTs);
+    }
+
+    @Test
+    public void testGetConversationsInfoLocale() throws Exception {
+        var response = service.getConversationLocale("valid_channel")
+                .toCompletableFuture()
+                .get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals("fr-FR", response.getCode());
+    }
+
+    @Test
+    public void testGetLocaleFailed() throws Exception {
+        Server server = Server.forRouter( (components) -> RoutingDsl
+                .fromComponents(components)
+                .GET(config.getConversationsInfoUrl())
+                .routingTo( request -> internalServerError())
+                .build());
+
+        try(WSClient wsClient = play.test.WSTestClient.newClient(server.httpPort())) {
+            var ec = new HttpExecutionContext(ForkJoinPool.commonPool());
+
+            SlackService service = new SlackService(ec, config, wsClient);
+            var response = service.getConversationLocale("CHANNEL123")
+                    .toCompletableFuture()
+                    .get(10, TimeUnit.SECONDS);
+
+            Assert.assertEquals("en", response.getCode());
+        } finally {
+            server.stop();
+        }
     }
 
 }

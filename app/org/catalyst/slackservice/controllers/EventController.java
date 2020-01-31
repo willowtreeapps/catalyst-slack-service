@@ -3,6 +3,7 @@ package org.catalyst.slackservice.controllers;
 import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.AnalyticsKey;
 import org.catalyst.slackservice.domain.Event;
+import org.catalyst.slackservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
@@ -13,10 +14,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.services.MessageCorrector;
-import org.catalyst.slackservice.util.AppConfig;
-import org.catalyst.slackservice.util.MessageHandler;
-import org.catalyst.slackservice.util.RequestVerifier;
-import org.catalyst.slackservice.util.ResultHelper;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -77,15 +74,25 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_TYPE);
         }
 
+        if (isInvalidUrlVerification(eventRequest)) {
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CHALLENGE);
+        }
+
+        if (isInvalidEventCallback(eventRequest)) {
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
+        }
+
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
+            logger.error("Request not verified");
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
         logger.debug("incoming event --> {}", Json.toJson(eventRequest).toString());
+
         if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
-            return handleURLVerification(messages, eventRequest.challenge);
+            return handleURLVerification(eventRequest.challenge);
         } else if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
-            return handleEventCallback(messages, eventRequest.event);
+            return handleEventCallback(eventRequest.event);
         }
 
         return ResultHelper.badRequest(messages, MessageHandler.UNSUPPORTED_TYPE);
@@ -93,29 +100,19 @@ public class EventController extends Controller {
 
     /**
      * URL verification happens during configuration of the app Event Subscription URL
-     * @param messages
      * @param challenge
      * @return
      */
-    private CompletionStage<Result> handleURLVerification(final MessageHandler messages, final String challenge) {
-        if (challenge == null) {
-            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CHALLENGE);
-        }
-
+    private CompletionStage<Result> handleURLVerification(final String challenge) {
         return ResultHelper.ok(Json.toJson(Map.of(VERIFICATION_CHALLENGE, challenge)));
     }
 
     /**
      * Event callback is triggered for all subscribed events
-     * @param messages
      * @param event
      * @return
      */
-    private CompletionStage<Result> handleEventCallback(final MessageHandler messages, final Event event) {
-        if (event == null) {
-            return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
-        }
-
+    private CompletionStage<Result> handleEventCallback(final Event event) {
         boolean isBotMessage = _config.getBotId().equals(event.botId) &&
                 _config.getBotUserName().equals(event.username);
 
@@ -126,20 +123,26 @@ public class EventController extends Controller {
             return ResultHelper.ok();
         }
 
-        if (isChannelJoinEvent) {
-            return handleChannelJoin(messages, event);
-        }
+        var localeResult = _slackService.getConversationLocale(event.channel);
 
-        var isDirectMessage = CHANNEL_TYPE_IM.equalsIgnoreCase(event.channelType);
-        var isBotMentioned = event.text.contains("@" + _config.getBotId());
+        return localeResult.thenComposeAsync(slackLocale -> {
+            var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
 
-        if (event.text.toLowerCase().contains(DIRECT_MESSAGE_HELP) && (isDirectMessage || isBotMentioned)) {
-            return handleHelpRequest(messages, event);
-        }
-        return handleUserMessage(messages, event);
+            if (isChannelJoinEvent) {
+                return handleChannelJoin(localizedMessages, event);
+            }
+
+            var isDirectMessage = CHANNEL_TYPE_IM.equalsIgnoreCase(event.channelType);
+            var isBotMentioned = event.text.contains("@" + _config.getBotId());
+
+            if (event.text.toLowerCase().contains(DIRECT_MESSAGE_HELP) && (isDirectMessage || isBotMentioned)) {
+                return handleHelpRequest(localizedMessages, event);
+            }
+            return handleUserMessage(localizedMessages, event);
+        });
     }
 
-    public CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
         return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse -> {
             var response = Json.toJson(slackResponse);
             logger.debug("help request {}", response);
@@ -147,13 +150,13 @@ public class EventController extends Controller {
         } , _ec.current());
     }
 
-    public CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
         var key = new AnalyticsKey();
         key.teamId = event.team;
         key.channelId = event.channel;
 
         _db.incrementMessageCounts(key);
-        var correctorResult = _biasCorrector.getCorrection(event.text);
+        var correctorResult = _biasCorrector.getCorrection(event.text, messages.slackLocale);
 
         return correctorResult.thenComposeAsync(correction -> {
 
@@ -168,7 +171,7 @@ public class EventController extends Controller {
         }, _ec.current());
     }
 
-    public CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
 
         return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse -> {
             var json = Json.toJson(slackResponse);
@@ -178,5 +181,13 @@ public class EventController extends Controller {
             }
             return ok(json);
         }, _ec.current());
+    }
+
+    private static boolean isInvalidUrlVerification(final Request request) {
+        return request.type.equals(TYPE_URL_VERIFICATION) && request.challenge == null;
+    }
+
+    private static boolean isInvalidEventCallback(final Request request){
+        return request.type.equals(TYPE_EVENT_CALLBACK) && (request.event == null || request.event.channel == null);
     }
 }

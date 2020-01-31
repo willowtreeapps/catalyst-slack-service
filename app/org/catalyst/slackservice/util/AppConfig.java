@@ -19,4 +19,5 @@ public interface AppConfig {
     String getOauthUrl();
     String getUpdateUrl();
     String getAuthorizedUrl();
+    String getConversationsInfoUrl();
 }

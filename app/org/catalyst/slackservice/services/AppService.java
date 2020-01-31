@@ -4,6 +4,7 @@ import org.catalyst.slackservice.domain.AuthResponse;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.InteractiveMessage;
 import org.catalyst.slackservice.domain.SlackResponse;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.catalyst.slackservice.util.MessageHandler;
 
 import java.util.concurrent.CompletionStage;
@@ -23,4 +24,6 @@ public interface AppService {
     CompletionStage<SlackResponse> deleteMessage(String responseUrl);
 
     CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event);
+
+    CompletionStage<SlackLocale> getConversationLocale(String channel);
 }

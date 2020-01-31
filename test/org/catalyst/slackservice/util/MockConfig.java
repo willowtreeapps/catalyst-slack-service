@@ -20,4 +20,5 @@ public class MockConfig implements AppConfig {
     public String getOauthUrl() {return "/api/oauth.access";}
     public String getUpdateUrl() {return "/api/chat.update";}
     public String getAuthorizedUrl() { return "/authorized"; }
+    public String getConversationsInfoUrl() {return "/api/conversations.info";}
 }
