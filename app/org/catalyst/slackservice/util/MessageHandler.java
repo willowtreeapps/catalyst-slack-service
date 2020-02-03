@@ -30,7 +30,6 @@ public class MessageHandler {
     public static final String UNSUPPORTED_ACTION = "message.unsupported.action";
     public static final String REPLACED_WITH = "message.replaced.with";
     public static final String LEARN_MORE = "message.learn.more";
-    public static final String GENDER_BIAS_INFO = "message.gender.bias.info";
     public static final String USER_JOINED = "message.user.joined";
     public static final String PLUGIN_ADDED = "message.plugin.added";
     public static final String FALLBACK = "message.fallback";
