@@ -1,5 +1,7 @@
 package org.catalyst.slackservice.controllers;
 
+import org.catalyst.slackservice.services.AppService;
+import org.catalyst.slackservice.services.MockSlackService;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -26,6 +28,7 @@ public class HelpControllerTest extends WithApplication {
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
+                .overrides(bind(AppService.class).to(MockSlackService.class))
                 .build();
     }
 
@@ -57,6 +60,7 @@ public class HelpControllerTest extends WithApplication {
         requestBody.put("token", new String[]{"valid_token_123"});
         requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"random"});
+        requestBody.put("channel_id", new String[]{"valid_channel_123"});
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -74,6 +78,7 @@ public class HelpControllerTest extends WithApplication {
         var requestBody = new HashMap<String, String[]>();
         requestBody.put("token", new String[]{"valid_token_123"});
         requestBody.put("command", new String[]{COMMAND});
+        requestBody.put("channel_id", new String[]{"valid_channel_123"});
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -92,8 +97,9 @@ public class HelpControllerTest extends WithApplication {
         requestBody.put("token", new String[]{"valid_token_123"});
         requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"help"});
+        requestBody.put("channel_id", new String[]{"valid_channel_123"});
         var request = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=9c1eba191b399791ee89180944d7ea9f52e2938fdf3c4e325f84e60c4d900033")
+                .header("X-Slack-Signature", "v0=5d8bd31725fd87faa943f947a501e70c4b897e1527481033ccc2d49feb6e74a2")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
@@ -107,6 +113,7 @@ public class HelpControllerTest extends WithApplication {
         requestBody.put("token", new String[]{"invalid_token"});
         requestBody.put("command", new String[]{COMMAND});
         requestBody.put("text", new String[]{"help"});
+        requestBody.put("channel_id", new String[]{"valid_channel_123"});
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);

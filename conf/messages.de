@@ -1,0 +1,25 @@
+error.invalid.request = Invalid request
+error.request.not.verified = Request not verified
+error.missing.type = Missing request type
+error.missing.challenge = Missing challenge parameter
+error.unsupported.type = Unsupported request type
+error.invalid.event = Invalid event body
+error.missing.code = Missing request code
+error.missing.user.action.values = Missing values for one or more of the user action required fields
+error.missing.iMessage.fields = Missing callback id or actions array
+
+message.suggestion = Did you mean "{0}"?
+message.title = Bevor Sie „absenden“ drücken, denken Sie nach … wenn sie ein er wäre, hätten Sie dieses Wort gewählt?
+message.fallback = Darn! I wish this worked!
+message.plugin.added = Diesem Kanal wurde das Plug-in #BiasCorrect von Catalyst hinzugefügt. Wie die Rechtschreibprüfung, jedoch mit Blick auf geschlechterspezifische Vorurteile, zeigt dieses Plug-in Ihre unbewussten Vorurteile in Echtzeit an und bietet vorurteilsfreie Alternativen.\n\nKlicken Sie jetzt auf „genehmigen“, um Teil des Wandels zu werden und uns zu helfen, mit #BiasCorrect den Arbeitsplatz wortweise zu korrigieren.
+message.user.joined = Sie wurden einem Kanal hinzugefügt, der das Plug-in #BiasCorrect von Catalyst verwendet. Studien zeigen, dass unbewusste Geschlechtervorurteile die Kluft zwischen den Geschlechtern verstärkt. Dieses Plug-in soll den Benutzern ermöglichen, ein Teil des Wandels zu werden, indem es unbewusste Geschlechtervorurteile in Echtzeit-Konversationen anzeigt und dafür alternative, vorurteilsfreie Wörter oder Phrasen bietet, die die Benutzer nutzen können. Klicken Sie jetzt auf „genehmigen“, um mit #BiasCorrect den Arbeitsplatz für immer zu verbessern. Verwenden Sie den Befehl „bias-correct“, um Informationen zur Verwendung zu erhalten.
+message.plugin.info = The BiasCorrect plug-in helps identify and correct unconscious gender bias in day-to-day messages and conversations.\n Examples: 'she is very emotional', or 'she is very dramatic', or 'she is a nag', or 'she is very temperamental'.\nTry typing one of these messages and see what happens!
+message.learn.more = Untersuchungen nach befinden sich Frauen am Arbeitsplatz in einer Zwickmühle, da von weiblichen Führungskräften Selbstbewusstsein und Warmherzigkeit erwartet wird, um als kompetent zu gelten. Die Wörter, mit denen wir Frauen bezeichnen, können negative Geschlechterstereotype verstärken. Darum ist es wichtig, unsere Aufmerksamkeit nicht dem Stil sondern der Leistung zu widmen.\n\nEntdecken Sie unter Catalyst.org/biascorrect weitere Hilfsmittel und Taktiken um mit #BiasCorrect am Arbeitsplatz Vorurteile abzubauen.
+message.replaced.with = {0} has replaced {1} with {2}
+message.specify.action = No action specified. Supported actions: [help]
+message.unsupported.action = Unsupported action: {0}.  Supported actions: [help]
+
+button.correct = Bias Correct
+button.ignore = Ignore
+button.learn = Learn More
+button.authorize = Authorize

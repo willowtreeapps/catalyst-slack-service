@@ -34,18 +34,14 @@ public class MessageGenerator {
 
     public static Message generatePluginAddedMessage(MessageHandler msg, Event event, String token, String signinUrl, String learnMoreUrl) {
         var message = generateChannelJoinMessage(msg, event, token, signinUrl, learnMoreUrl);
-        var leadText = msg.get(MessageHandler.PLUGIN_ADDED);
-        var fullText = msg.get(MessageHandler.GENDER_BIAS_INFO, leadText);
-        message.text = fullText;
+        message.text = msg.get(MessageHandler.PLUGIN_ADDED);
 
         return message;
     }
 
     public static Message generateUserJoinedMessage(MessageHandler msg, Event event, String token, String signinUrl, String learnMoreUrl) {
         var message = generateChannelJoinMessage(msg, event, token, signinUrl, learnMoreUrl);
-        var leadText = msg.get(MessageHandler.USER_JOINED);
-        var fullText = msg.get(MessageHandler.GENDER_BIAS_INFO, leadText);
-        message.text = fullText;
+        message.text = msg.get(MessageHandler.USER_JOINED);
         message.user = event.user;
 
         return message;
