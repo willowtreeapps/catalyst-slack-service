@@ -41,8 +41,9 @@ public class SlackServiceTest {
 
         Map<String, String> messagesMap = new HashMap<>();
         messagesMap.put("message.suggestion", "Suggested correction");
-        messagesMap.put("message.gender.bias.info", "Gender bias information");
+        messagesMap.put("message.plugin.added", "Plugin added to channel");
         messagesMap.put("message.learn.more", "Plugin information");
+        messagesMap.put("message.user.joined", "User joined channel with plugin");
 
         var langs = new Langs(new play.api.i18n.DefaultLangs());
         var langMap = Collections.singletonMap(Lang.defaultLang().code(), messagesMap);
@@ -149,7 +150,7 @@ public class SlackServiceTest {
         var reply = MessageGenerator.generatePluginAddedMessage(msg, event,
                 config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
 
-        Assert.assertEquals("Gender bias information", reply.text);
+        Assert.assertEquals("Plugin added to channel", reply.text);
         Assert.assertEquals(null, reply.user);
     }
 
@@ -163,7 +164,7 @@ public class SlackServiceTest {
         var reply = MessageGenerator.generateUserJoinedMessage(msg, event,
                 config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
 
-        Assert.assertEquals("Gender bias information", reply.text);
+        Assert.assertEquals("User joined channel with plugin", reply.text);
         Assert.assertEquals(event.user, reply.user);
     }
 
