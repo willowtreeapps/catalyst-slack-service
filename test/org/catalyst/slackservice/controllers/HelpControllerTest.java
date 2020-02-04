@@ -39,7 +39,7 @@ public class HelpControllerTest extends WithApplication {
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
         var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test

@@ -1,7 +1,9 @@
 package org.catalyst.slackservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Event {
     @JsonProperty("client_msg_id")
     public String clientMsgId;
