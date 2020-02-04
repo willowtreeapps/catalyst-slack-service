@@ -16,7 +16,7 @@ public class PayloadHelper {
     public static Map<String, String> getFormUrlEncodedRequestBody(String request) {
         List<NameValuePair> parsedRequest = URLEncodedUtils.parse(request, CHARSET_UTF8);
 
-        return parsedRequest.stream().collect(
+        return parsedRequest.parallelStream().collect(
                 Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
     }
 

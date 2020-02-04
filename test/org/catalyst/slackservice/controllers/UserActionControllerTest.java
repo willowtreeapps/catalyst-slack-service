@@ -47,7 +47,7 @@ public class UserActionControllerTest extends WithApplication {
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(null);
         var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test
@@ -60,7 +60,7 @@ public class UserActionControllerTest extends WithApplication {
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
         var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class UserActionControllerTest extends WithApplication {
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
+        assertEquals(BAD_REQUEST, result.status());
     }
 
     @Test

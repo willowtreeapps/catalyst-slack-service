@@ -72,14 +72,15 @@ public class EventController extends Controller {
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
 
-        var byteArrayBody = httpRequest.body().asBytes().toArray();
-        if (byteArrayBody.length == 0) {
+        var requestBodyAsBytes = httpRequest.body().asBytes();
+        if (requestBodyAsBytes == null || requestBodyAsBytes.isEmpty()) {
+            logger.error("empty event content");
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
         var eventRequest = new Request();
         try {
-            eventRequest = new ObjectMapper().readValue(byteArrayBody, Request.class);
+            eventRequest = new ObjectMapper().readValue(requestBodyAsBytes.toArray(), Request.class);
         } catch (IOException e) {
             logger.error("unable to parse event request {}", e.getMessage());
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);

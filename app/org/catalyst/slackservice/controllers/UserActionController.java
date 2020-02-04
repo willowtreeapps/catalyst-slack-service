@@ -49,10 +49,11 @@ public class UserActionController extends Controller {
 
     @BodyParser.Of(BodyParser.Raw.class)
     public CompletionStage<Result> handle(Http.Request httpRequest) {
+        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         var requestBodyAsBytes = httpRequest.body().asBytes();
         if (requestBodyAsBytes == null || requestBodyAsBytes.isEmpty()) {
             logger.error("empty user action content");
-            return ResultHelper.noContent();
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
         var body = PayloadHelper.getFormUrlEncodedRequestBody(requestBodyAsBytes.decodeString(PayloadHelper.CHARSET_UTF8));
@@ -60,7 +61,7 @@ public class UserActionController extends Controller {
         var payload = PayloadHelper.getMapValue(body, PAYLOAD);
         if (payload.isEmpty()) {
             logger.error("empty user action payload");
-            return ResultHelper.noContent();
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
         InteractiveMessage interactiveMessage = null;
@@ -72,10 +73,9 @@ public class UserActionController extends Controller {
 
         if (interactiveMessage == null) {
             logger.error("null interactive message");
-            return ResultHelper.noContent();
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
-        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         if (interactiveMessage.callbackId == null || interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
             logger.error("null interactive message field");
             logger.debug("interactive message fields --> callbackId: {}, actions: {}", interactiveMessage.callbackId, interactiveMessage.actions);
