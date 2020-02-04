@@ -1,21 +1,28 @@
 package org.catalyst.slackservice.controllers;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.AnalyticsKey;
 import org.catalyst.slackservice.domain.Event;
-import org.catalyst.slackservice.util.*;
+import org.catalyst.slackservice.services.AppService;
+import org.catalyst.slackservice.services.MessageCorrector;
+import org.catalyst.slackservice.util.AppConfig;
+import org.catalyst.slackservice.util.MessageHandler;
+import org.catalyst.slackservice.util.RequestVerifier;
+import org.catalyst.slackservice.util.ResultHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
@@ -30,6 +37,7 @@ public class EventController extends Controller {
     private static final String CHANNEL_TYPE_IM = "im";
     private static final String DIRECT_MESSAGE_HELP = "help";
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Request {
         public String token;
         public String challenge;
@@ -60,15 +68,22 @@ public class EventController extends Controller {
      * @param httpRequest
      * @return
      */
+    @BodyParser.Of(BodyParser.Raw.class)
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-        var request = httpRequest.body().parseJson(Request.class);
 
-        if (request.isEmpty()) {
+        var byteArrayBody = httpRequest.body().asBytes().toArray();
+        if (byteArrayBody.length == 0) {
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
-        var eventRequest = request.get();
+        var eventRequest = new Request();
+        try {
+            eventRequest = new ObjectMapper().readValue(byteArrayBody, Request.class);
+        } catch (IOException e) {
+            logger.error("unable to parse event request {}", e.getMessage());
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
+        }
 
         if (eventRequest.type == null) {
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_TYPE);

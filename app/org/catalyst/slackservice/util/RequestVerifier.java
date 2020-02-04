@@ -59,6 +59,6 @@ public class RequestVerifier {
 
         return
             (headersExist && hashVerified(configSigningSecret, httpRequest)) ||
-            (/*!headersExist && */ token != null && token.equals(configToken)); // TODO: BGC-91 signing secret does not seem to match if text has special characters/diacritics (e.g. pére) but pere works
+            (!headersExist && token != null && token.equals(configToken));
     }
 }
