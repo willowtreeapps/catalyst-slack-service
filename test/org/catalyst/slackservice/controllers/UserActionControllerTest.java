@@ -29,7 +29,6 @@ import static play.test.Helpers.*;
 
 public class UserActionControllerTest extends WithApplication {
 
-    private MockDbHandler dbManager = new MockDbHandler();
     private static final String URI = "/bias-correct/v2/slack/actions";
     @Override
     protected Application provideApplication() {
@@ -44,8 +43,18 @@ public class UserActionControllerTest extends WithApplication {
 
     @Test
     public void testEmptyBody() {
+        var request = new Http.RequestBuilder()
+                .method(POST)
+                .uri(URI).bodyFormArrayValues(null);
+        var result = route(app, request);
+        assertEquals(NO_CONTENT, result.status());
+    }
+
+    @Test
+    public void testEmptyPayload() {
         var requestBody = new HashMap<String, String[]>();
-        requestBody.put("fake_payload", new String[]{});
+        requestBody.put("fake_payload", new String[]{"fake value"});
+        requestBody.put("payload", new String[]{""});
 
         var request = new Http.RequestBuilder()
                 .method(POST)
@@ -57,7 +66,7 @@ public class UserActionControllerTest extends WithApplication {
     @Test
     public void testInvalidPayload() {
         var requestBody = new HashMap<String, String[]>();
-        requestBody.put("payload", new String[] {"invalid body", "invalid body"});
+        requestBody.put("payload", new String[] {"invalid body"});
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);

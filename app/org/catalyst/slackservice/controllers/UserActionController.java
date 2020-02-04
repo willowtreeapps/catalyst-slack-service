@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -46,19 +47,25 @@ public class UserActionController extends Controller {
         this._analyticsDb = analyticsDb;
     }
 
+    @BodyParser.Of(BodyParser.Raw.class)
     public CompletionStage<Result> handle(Http.Request httpRequest) {
-        var body = httpRequest.body().asFormUrlEncoded();
-
-        var payload = body == null ? null : PayloadHelper.getFirstArrayValue(body.get(PAYLOAD));
-        if (payload == null || payload.isEmpty()) {
-            logger.debug("empty user action payload");
+        var requestBodyAsBytes = httpRequest.body().asBytes();
+        if (requestBodyAsBytes == null || requestBodyAsBytes.isEmpty()) {
+            logger.error("empty user action content");
             return ResultHelper.noContent();
         }
 
-        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
+        var body = PayloadHelper.getFormUrlEncodedRequestBody(requestBodyAsBytes.decodeString(PayloadHelper.CHARSET_UTF8));
+
+        var payload = PayloadHelper.getMapValue(body, PAYLOAD);
+        if (payload.isEmpty()) {
+            logger.error("empty user action payload");
+            return ResultHelper.noContent();
+        }
+
         InteractiveMessage interactiveMessage = null;
         try {
-            interactiveMessage = Json.fromJson(Json.parse(payload.get()), InteractiveMessage.class);
+            interactiveMessage = Json.fromJson(Json.parse(payload), InteractiveMessage.class);
         } catch(Exception e) {
             logger.error(e.getMessage());
         }
@@ -68,6 +75,7 @@ public class UserActionController extends Controller {
             return ResultHelper.noContent();
         }
 
+        var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
         if (interactiveMessage.callbackId == null || interactiveMessage.actions == null || interactiveMessage.actions.isEmpty()) {
             logger.error("null interactive message field");
             logger.debug("interactive message fields --> callbackId: {}, actions: {}", interactiveMessage.callbackId, interactiveMessage.actions);
