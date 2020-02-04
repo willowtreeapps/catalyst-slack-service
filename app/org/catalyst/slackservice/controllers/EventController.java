@@ -78,6 +78,7 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
+        // TODO: move outside of controller
         var eventRequest = new Request();
         try {
             eventRequest = new ObjectMapper().readValue(requestBodyAsBytes.toArray(), Request.class);

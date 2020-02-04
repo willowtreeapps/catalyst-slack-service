@@ -64,6 +64,7 @@ public class UserActionController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
+        // TODO: move outside of controller
         InteractiveMessage interactiveMessage = null;
         try {
             interactiveMessage = Json.fromJson(Json.parse(payload), InteractiveMessage.class);
