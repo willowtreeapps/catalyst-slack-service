@@ -15,7 +15,6 @@ public class RequestVerifier {
     private static final String ALGORITHM = "HmacSHA256";
     private static final String SIGNATURE_HEADER = "X-Slack-Signature";
     private static final String TIMESTAMP_HEADER = "X-Slack-Request-Timestamp";
-    private static final String CHARSET = "UTF-8";
     private static final String PREFIX = "v0";
 
     private static boolean headersExist(Http.Request request) {
@@ -41,7 +40,7 @@ public class RequestVerifier {
         var hash = "";
         try {
             var requestBody = request.body();
-            var body = requestBody == null ? "" : new String(requestBody.asBytes().toArray(), CHARSET);
+            var body = requestBody == null ? "" : new String(requestBody.asBytes().toArray(), PayloadHelper.UTF8);
             var baseString = String.join(":", PREFIX, timestamp.get(), body );
             var sha256_HMAC = Mac.getInstance(ALGORITHM);
             sha256_HMAC.init(secretKey);
@@ -59,6 +58,6 @@ public class RequestVerifier {
 
         return
             (headersExist && hashVerified(configSigningSecret, httpRequest)) ||
-            (/*!headersExist && */ token != null && token.equals(configToken)); // TODO: BGC-91 signing secret does not seem to match if text has special characters/diacritics (e.g. pére) but pere works
+            (!headersExist && configToken.equals(token));
     }
 }

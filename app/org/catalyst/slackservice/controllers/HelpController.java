@@ -6,13 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 public class HelpController extends Controller {
@@ -36,49 +36,48 @@ public class HelpController extends Controller {
         this._slackService = service;
     }
 
+    @BodyParser.Of(BodyParser.Raw.class)
     public CompletionStage<Result> handle(Http.Request httpRequest) {
-        var body = httpRequest.body().asFormUrlEncoded();
-
-        if (body == null) {
-            return ResultHelper.noContent();
-        }
-
         var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-        var token = PayloadHelper.getFirstArrayValue(body.get(TOKEN));
-        if (token.isEmpty()) {
-            logger.error("empty token");
-            return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
+
+        var requestBodyAsBytes = httpRequest.body().asBytes();
+        if (requestBodyAsBytes == null || requestBodyAsBytes.isEmpty()) {
+            logger.error("empty help request content");
+            return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
-        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token.get())) {
+        var body = PayloadHelper.getFormUrlEncodedRequestBody(requestBodyAsBytes.decodeString(PayloadHelper.CHARSET_UTF8));
+        var token = PayloadHelper.getMapValue(body, TOKEN);
+
+        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token)) {
             logger.error("request not verified");
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
-        var command = PayloadHelper.getFirstArrayValue(body.get(COMMAND));
-        var text = PayloadHelper.getFirstArrayValue(body.get(TEXT));
-        var channel = PayloadHelper.getFirstArrayValue(body.get(CHANNEL_ID));
+        var command = PayloadHelper.getMapValue(body, COMMAND);
+        var text = PayloadHelper.getMapValue(body, TEXT);
+        var channel = PayloadHelper.getMapValue(body, CHANNEL_ID);
 
         logger.debug("command: {}, text: {}, channel: {}", command, text, channel);
 
-        if (command.isEmpty() || !command.get().equals(BIAS_CORRECT) || channel.isEmpty()) {
+        if (command.isEmpty() || !command.equals(BIAS_CORRECT) || channel.isEmpty()) {
             return ResultHelper.noContent();
         }
 
-        return handleHelpRequest(channel.get(), text);
+        return handleHelpRequest(channel, text);
     }
 
-    private CompletionStage<Result> handleHelpRequest(String channel, Optional<String> text) {
+    private CompletionStage<Result> handleHelpRequest(String channel, String text) {
         var localeResult = _slackService.getConversationLocale(channel);
 
         return localeResult.thenComposeAsync(slackLocale -> {
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
             var message = localizedMessages.get(MessageHandler.PLUGIN_INFO);
 
-            if (text.isEmpty() || text.get().isEmpty()) {
+            if (text.isEmpty()) {
                 message = localizedMessages.get(MessageHandler.SPECIFY_ACTION);
-            } else if (!text.get().equals(HELP)) {
-                message = localizedMessages.get(MessageHandler.UNSUPPORTED_ACTION, text.get());
+            } else if (!text.equals(HELP)) {
+                message = localizedMessages.get(MessageHandler.UNSUPPORTED_ACTION, text);
             }
 
             return ResultHelper.ok(Json.toJson(Map.of(TEXT, message)));
