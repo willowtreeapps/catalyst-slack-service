@@ -1,21 +1,24 @@
 package org.catalyst.slackservice.controllers;
 
-import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.MockDbHandler;
+import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.db.TokenKey;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
-import org.junit.Test;
-import play.Application;
-import play.inject.guice.GuiceApplicationBuilder;
-import play.libs.Json;
-import play.mvc.Http;
-import play.test.WithApplication;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.services.MessageCorrector;
 import org.catalyst.slackservice.services.MockCorrector;
 import org.catalyst.slackservice.services.MockSlackService;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MockConfig;
+import org.junit.Before;
+import org.junit.Test;
+import play.Application;
+import play.inject.guice.GuiceApplicationBuilder;
+import play.libs.Json;
+import play.mvc.Http;
+import play.test.WithApplication;
 
 import static org.junit.Assert.assertEquals;
 import static play.inject.Bindings.bind;
@@ -23,15 +26,24 @@ import static play.test.Helpers.*;
 
 public class EventControllerTest extends WithApplication {
     private static final String EVENTS_URI = "/bias-correct/v2/slack/events";
-
+    private MockDbHandler mockDbHandler = new MockDbHandler();
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(TokenHandler.class).to(MockDbHandler.class))
+                .overrides(bind(AnalyticsHandler.class).toInstance(mockDbHandler))
+                .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
                 .build();
+    }
+
+    @Before
+    public void setup() {
+        TokenKey token = new TokenKey();
+        token.userId = "USER123";
+        token.teamId = "TEAM123";
+        mockDbHandler.setUserToken(token, "xoxp-1234");
     }
 
     @Test
@@ -225,6 +237,26 @@ public class EventControllerTest extends WithApplication {
     }
 
     @Test
+    public void testBiasedUnauthorizedUser() {
+        var eventRequest = getValidEventCallback();
+
+        eventRequest.event.type = "message";
+        eventRequest.event.text = "she's so quiet";
+        eventRequest.event.user = "USER999";
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        var body = contentAsBytes(result).toArray();
+        var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
+
+        assertEquals("23456.78901", slackResponse.messageTs);
+        assertEquals(OK, result.status());
+    }
+
+    @Test
     public void testRequestVerified() {
         var eventRequest = getValidEventCallback();
 
@@ -232,7 +264,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.text = "she's so quiet";
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=2bcd1287bd7880367967d133c9693f5ea9d769b839ea4f6e9572578b8980dda0")
+                .header("X-Slack-Signature", "v0=6dedc3a067ddd9c4c93cf4ca6e3ab2cfcc56d89fb85d02c153c81b3b2e8d35f1")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -294,6 +326,10 @@ public class EventControllerTest extends WithApplication {
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         var result = route(app, httpRequest);
+        var body = contentAsBytes(result).toArray();
+        var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
+
+        assertEquals("23456.78901", slackResponse.messageTs);
         assertEquals(OK, result.status());
     }
 
@@ -337,6 +373,7 @@ public class EventControllerTest extends WithApplication {
 
         event.user = "USER123";
         event.channel = "valid_channel_123";
+        event.team = "TEAM123";
 
         return eventRequest;
     }

@@ -125,42 +125,30 @@ public class UserActionController extends Controller {
             if (action.value.equals(Action.YES)) {
                 _analyticsDb.incrementCorrectedMessageCounts(dbKey);
 
-                return handleReplaceMessage(localizedMessages, iMessage);
+                return handleReplaceMessage(iMessage);
             }
 
             return ResultHelper.noContent();
         });
     }
 
-    private CompletionStage<Result> handleReplaceMessage(final MessageHandler messages, final InteractiveMessage iMessage) {
+    private CompletionStage<Result> handleReplaceMessage(final InteractiveMessage iMessage) {
 
-        // if we're directly replacing the message, we don't need to keep the original version
-        // as the 'name' attribute of the action, and we can put the correction there instead.
-        // then we can remove this second call to the bias correct service
-        var originalPost = iMessage.actions.stream().findFirst().get().name;
+        var correction = iMessage.actions.stream().findFirst().get().name;
+        var tokenKey = new TokenKey();
+        tokenKey.teamId = iMessage.team.id;
+        tokenKey.userId = iMessage.user.id;
 
-        var correctorResult = _biasCorrector.getCorrection(originalPost, messages.slackLocale);
-        return correctorResult.thenComposeAsync(correction -> {
+        var replacementResult = _slackService.postReplacement(iMessage, _tokenDb.getUserToken(tokenKey));
 
-            if (correction.isEmpty()) {
+        return replacementResult.thenComposeAsync(replacementResponse -> {
+            if (!replacementResponse.ok) {
+                logger.error("unable to replace message: {}", Json.toJson(replacementResponse));
                 return ResultHelper.noContent();
             }
 
-            var tokenKey = new TokenKey();
-            tokenKey.teamId = iMessage.team.id;
-            tokenKey.userId = iMessage.user.id;
-
-            var replacementResult = _slackService.postReplacement(messages, iMessage, correction, _tokenDb.getUserToken(tokenKey));
-
-            return replacementResult.thenComposeAsync(replacementResponse -> {
-                if (!replacementResponse.ok) {
-                    logger.error("unable to replace message: {}", Json.toJson(replacementResponse));
-                    return ResultHelper.noContent();
-                }
-
-                logger.debug("message replaced: {} --> {}", originalPost, correction);
-                return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(deleteResponse -> noContent(), _ec.current());
-            }, _ec.current());
+            logger.debug("message replaced: --> {}", correction);
+            return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(deleteResponse -> noContent(), _ec.current());
         }, _ec.current());
     }
 

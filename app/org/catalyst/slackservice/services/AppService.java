@@ -19,7 +19,7 @@ public interface AppService {
 
     CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage);
 
-    CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken);
+    CompletionStage<SlackResponse> postReplacement(InteractiveMessage iMessage, String userToken);
 
     CompletionStage<SlackResponse> deleteMessage(String responseUrl);
 

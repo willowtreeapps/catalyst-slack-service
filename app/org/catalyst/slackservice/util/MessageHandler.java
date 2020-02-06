@@ -28,7 +28,6 @@ public class MessageHandler {
     public static final String PLUGIN_INFO = "message.plugin.info";
     public static final String SPECIFY_ACTION = "message.specify.action";
     public static final String UNSUPPORTED_ACTION = "message.unsupported.action";
-    public static final String REPLACED_WITH = "message.replaced.with";
     public static final String LEARN_MORE = "message.learn.more";
     public static final String USER_JOINED = "message.user.joined";
     public static final String PLUGIN_ADDED = "message.plugin.added";
