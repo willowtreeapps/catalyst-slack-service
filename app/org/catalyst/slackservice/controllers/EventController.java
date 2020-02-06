@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.AnalyticsKey;
+import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.db.TokenKey;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.services.MessageCorrector;
@@ -51,16 +53,18 @@ public class EventController extends Controller {
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
     private final AnalyticsHandler _db;
+    private final TokenHandler _tokendb;
 
     @Inject
     public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
-                           MessageCorrector biasCorrector, AppService slackService, AnalyticsHandler db) {
+                           MessageCorrector biasCorrector, AppService slackService, AnalyticsHandler db, TokenHandler tokenDb) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
         this._db = db;
+        this._tokendb = tokenDb;
     }
 
     /**
@@ -179,6 +183,17 @@ public class EventController extends Controller {
 
             if (correction.isEmpty()) {
                 return ResultHelper.ok();
+            }
+
+            var tokenKey = new TokenKey();
+            tokenKey.teamId = event.team;
+            tokenKey.userId = event.user;
+
+            // if user has not authorized, show auth prompt instead of the correction prompt
+            var userToken = _tokendb.getUserToken(tokenKey);
+            if (userToken == null) {
+                event.user = _config.getBotId();
+                return handleChannelJoin(messages, event);
             }
 
             return _slackService.postSuggestion(messages, event, correction)
