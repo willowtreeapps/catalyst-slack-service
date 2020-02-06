@@ -47,6 +47,7 @@ public class MockSlackService implements AppService {
         if (event.text.equals("invalid")) {
             response.ok = false;
         }
+        response.messageTs = "23456.78901";
         return CompletableFuture.completedFuture(response);
     }
 
@@ -59,7 +60,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken) {
+    public CompletionStage<SlackResponse> postReplacement(InteractiveMessage iMessage, String userToken) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";

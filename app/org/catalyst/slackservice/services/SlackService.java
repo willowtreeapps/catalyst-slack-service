@@ -102,23 +102,15 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postReplacement(MessageHandler msg, InteractiveMessage iMessage, String correction, String userToken) {
+    public CompletionStage<SlackResponse> postReplacement(InteractiveMessage iMessage, String userToken) {
 
-        var originalPost = iMessage.actions.stream().findFirst().get().name;
         var message = new Message();
         message.token = userToken;
         message.channel = iMessage.channel.id;
-        message.text = correction;
+        message.text = iMessage.actions.stream().findFirst().get().name; // corrected message
         message.ts = iMessage.callbackId;
 
         var url = _config.getUpdateUrl();
-
-        if (userToken == null) {
-            message.token = _config.getBotOauthToken();
-            message.text = msg.get(MessageHandler.REPLACED_WITH, iMessage.user.name, originalPost, correction);
-
-            url = _config.getPostMessageUrl();
-        }
 
         return postReply(url, message, message.token);
     }
