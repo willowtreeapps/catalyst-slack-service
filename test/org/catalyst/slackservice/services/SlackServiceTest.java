@@ -125,7 +125,7 @@ public class SlackServiceTest {
         var reply = MessageGenerator.generateSuggestion(msg, event, correction, config.getBotOauthToken());
 
         Assert.assertEquals("Suggested correction", reply.text);
-        Assert.assertEquals(event.text, reply.attachments.get(0).actions.get(0).name);
+        Assert.assertEquals(correction, reply.attachments.get(0).actions.get(0).name);
         Assert.assertEquals(event.user, reply.user);
     }
 
@@ -229,29 +229,6 @@ public class SlackServiceTest {
     }
 
     @Test
-    public void testPostReplacementNullToken() throws Exception {
-        var iMessage = new InteractiveMessage();
-        iMessage.triggerId = "valid_trigger_id";
-        iMessage.channel = new InteractiveMessage.Channel();
-        iMessage.channel.id = "valid_channel";
-        iMessage.user = new InteractiveMessage.User();
-        iMessage.user.id = "USER123";
-        iMessage.callbackId = "valid_callback_id";
-
-        var action = new Action();
-        action.name = "she's so quiet";
-        action.value = "yes";
-        iMessage.actions = new ArrayList<>(Arrays.asList(action));
-
-        var response = service.postReplacement(msg, iMessage, "she's so thoughtful", null)
-                .toCompletableFuture()
-                .get(10, TimeUnit.SECONDS);
-
-        Assert.assertEquals(true, response.ok);
-        Assert.assertEquals(MESSAGE_TS, response.messageTs);
-    }
-
-    @Test
     public void testPostReplacementExistingToken() throws Exception {
         var iMessage = new InteractiveMessage();
         iMessage.triggerId = "valid_trigger_id";
@@ -262,11 +239,11 @@ public class SlackServiceTest {
         iMessage.callbackId = "valid_callback_id";
 
         var action = new Action();
-        action.name = "she's so quiet";
+        action.name = "she's so thoughtful";
         action.value = "yes";
         iMessage.actions = new ArrayList<>(Arrays.asList(action));
 
-        var response = service.postReplacement(msg, iMessage, "she's so thoughtful", "xoxp-token-123")
+        var response = service.postReplacement(iMessage, "xoxp-token-123")
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
