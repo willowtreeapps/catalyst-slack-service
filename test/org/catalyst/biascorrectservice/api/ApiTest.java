@@ -36,7 +36,7 @@ public class ApiTest {
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), is(""));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("she is smart")));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class ApiTest {
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), is(""));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("ella es fabulosa")));
     }
 
     @Test@Ignore
