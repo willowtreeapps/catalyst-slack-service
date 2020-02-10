@@ -17,6 +17,8 @@ public interface AppService {
 
     CompletionStage<SlackResponse> postChannelJoin(final MessageHandler msg, final Event event);
 
+    CompletionStage<SlackResponse> postReauthMessage(final MessageHandler msg, final Event event);
+
     CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage);
 
     CompletionStage<SlackResponse> postReplacement(InteractiveMessage iMessage, String userToken);

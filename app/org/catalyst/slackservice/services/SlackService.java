@@ -79,6 +79,15 @@ public class SlackService implements AppService, WSBodyReadables {
     }
 
     @Override
+    public CompletionStage<SlackResponse> postReauthMessage(final MessageHandler messages, final Event event) {
+        String url = _config.getPostEphemeralUrl();
+        Message message = MessageGenerator.generatePluginAddedMessage(messages, event,
+                _config.getAppOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+        message.user = event.user;
+        return postReply(url, message, _config.getAppOauthToken());
+    }
+
+    @Override
     public CompletionStage<AuthResponse> getAuthorization(String requestCode) {
         var request = _wsClient.url(_config.getOauthUrl()).
                 addQueryParameter(QUERY_PARAM_CODE, requestCode).

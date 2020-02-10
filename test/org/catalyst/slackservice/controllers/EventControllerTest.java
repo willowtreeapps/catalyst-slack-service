@@ -252,7 +252,7 @@ public class EventControllerTest extends WithApplication {
         var body = contentAsBytes(result).toArray();
         var slackResponse = Json.fromJson(Json.parse(body), SlackResponse.class);
 
-        assertEquals("23456.78901", slackResponse.messageTs);
+        assertEquals("34567.89012", slackResponse.messageTs);
         assertEquals(OK, result.status());
     }
 
