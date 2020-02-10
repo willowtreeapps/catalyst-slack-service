@@ -7,6 +7,7 @@ import org.catalyst.slackservice.db.AnalyticsKey;
 import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.TokenKey;
 import org.catalyst.slackservice.domain.Event;
+import org.catalyst.slackservice.domain.SlackResponse;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.services.MessageCorrector;
 import org.catalyst.slackservice.util.AppConfig;
@@ -192,27 +193,30 @@ public class EventController extends Controller {
             // if user has not authorized, show auth prompt instead of the correction prompt
             var userToken = _tokendb.getUserToken(tokenKey);
             if (userToken == null) {
-                event.user = _config.getBotId();
-                return handleChannelJoin(messages, event);
+                return _slackService.postReauthMessage(messages, event)
+                    .thenApplyAsync(slackResponse -> handleSlackResponse(event, slackResponse, "reauth failed"), _ec.current());
             }
 
             return _slackService.postSuggestion(messages, event, correction)
-                        .thenApplyAsync(slackResponse ->
-                            slackResponse.ok ? ok(Json.toJson(slackResponse)) : badRequest(Json.toJson(slackResponse))
-                        , _ec.current());
+                .thenApplyAsync(slackResponse -> handleSlackResponse(event, slackResponse, "postSuggestion failed")
+                , _ec.current());
         }, _ec.current());
     }
 
     private CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
 
-        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse -> {
-            var json = Json.toJson(slackResponse);
-            if (!slackResponse.ok) {
-                logger.error("channel join failed. teamId: {}, userId: {}, response: {}", event.team, event.user, json);
-                return badRequest(json);
-            }
-            return ok(json);
-        }, _ec.current());
+        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse ->
+            handleSlackResponse(event, slackResponse, "channel join failed")
+        , _ec.current());
+    }
+
+    private Result handleSlackResponse(Event event, SlackResponse slackResponse, String errorMessage) {
+        var json = Json.toJson(slackResponse);
+        if (!slackResponse.ok) {
+            logger.error("{}. teamId: {}, userId: {}, response: {}", errorMessage,  event.team, event.user, json);
+            return badRequest(json);
+        }
+        return ok(json);
     }
 
     private static boolean isInvalidUrlVerification(final Request request) {
