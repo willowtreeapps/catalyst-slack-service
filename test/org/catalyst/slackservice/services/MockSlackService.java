@@ -52,6 +52,14 @@ public class MockSlackService implements AppService {
     }
 
     @Override
+    public CompletionStage<SlackResponse> postReauthMessage(MessageHandler msg, Event event) {
+        var response = new SlackResponse();
+        response.ok = true;
+        response.messageTs = "34567.89012";
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Override
     public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
         var response = new SlackResponse();
         response.ok = true;

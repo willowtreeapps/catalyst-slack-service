@@ -6,6 +6,7 @@ import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.TokenKey;
 import org.catalyst.slackservice.domain.Action;
 import org.catalyst.slackservice.domain.InteractiveMessage;
+import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,6 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
@@ -27,7 +26,6 @@ public class UserActionController extends Controller {
 
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
-    private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
     private final TokenHandler _tokenDb;
@@ -37,10 +35,9 @@ public class UserActionController extends Controller {
 
     @Inject
     public UserActionController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
-                                MessageCorrector biasCorrector, AppService slackService, TokenHandler tokenDb, AnalyticsHandler analyticsDb) {
+                                AppService slackService, TokenHandler tokenDb, AnalyticsHandler analyticsDb) {
         this._config = config;
         this._messagesApi = messagesApi;
-        this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
         this._tokenDb = tokenDb;
