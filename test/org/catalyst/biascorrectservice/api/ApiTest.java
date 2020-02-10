@@ -1,12 +1,12 @@
 package org.catalyst.biascorrectservice.api;
 
+import org.catalyst.biascorrectservice.api.payloads.request.MessagePayload;
 import org.catalyst.biascorrectservice.api.payloads.response.MessageResponse;
 import org.catalyst.biascorrectservice.api.requests.Correct;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.catalyst.biascorrectservice.api.payloads.request.MessagePayload;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,7 +36,7 @@ public class ApiTest {
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("she is smart")));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("")));
     }
 
     @Test
@@ -75,39 +75,39 @@ public class ApiTest {
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("ella es fabulosa")));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("")));
     }
 
-    @Test@Ignore
+    @Test
     public void testBiasedGermanMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
-                .setText("sie ist barsch")
+                .setText("ihre theatralisch")
                 .setContext("de")
                 .build();
 
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("sie ist selbstbewusst")));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("ihre passioniert")));
     }
 
-    @Test@Ignore
+    @Test
     public void testSafeGermanMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
-                .setText("sie ist fabelhaft")
+                .setText("ihre fabelhaft")
                 .setContext("de")
                 .build();
 
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("Sie ist fabelhaft")));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("")));
     }
 
-    @Test@Ignore
+    @Test
     public void testBiasedFrenchMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
-                .setText("elle est émotive")
+                .setText("elle est sensible")
                 .setContext("fr")
                 .build();
 
@@ -117,7 +117,7 @@ public class ApiTest {
         assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("elle est passionnée")));
     }
 
-    @Test@Ignore
+    @Test
     public void testSafeFrenchMessage() {
         MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
                 .setText("elle est fabuleuse")
@@ -127,6 +127,6 @@ public class ApiTest {
         ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
 
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
-        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("elle est fabuleuse")));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("")));
     }
 }
