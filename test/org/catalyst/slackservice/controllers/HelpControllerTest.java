@@ -23,7 +23,7 @@ import static play.test.Helpers.*;
 public class HelpControllerTest extends WithApplication {
 
     private final static String URI = "/bias-correct/v2/slack/help";
-    private final static String COMMAND = "/bias-correct-v2";
+    private final static String COMMAND = "/bias-correct";
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
@@ -99,7 +99,7 @@ public class HelpControllerTest extends WithApplication {
         requestBody.put("text", new String[]{"help"});
         requestBody.put("channel_id", new String[]{"valid_channel_123"});
         var request = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=5d8bd31725fd87faa943f947a501e70c4b897e1527481033ccc2d49feb6e74a2")
+                .header("X-Slack-Signature", "v0=6e6991852e8093e639afbb74e7c3700a032bbf484122d40147ec0526099c16c1")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
