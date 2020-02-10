@@ -8,7 +8,7 @@ error.missing.code = Missing request code
 error.missing.user.action.values = Missing values for one or more of the user action required fields
 error.missing.iMessage.fields = Missing callback id or actions array
 
-message.suggestion = Did you mean "{0}"?
+message.suggestion = ¿Quisiste decir "{0}"?
 message.title = Antes de pulsar "Enviar", piensa un momento... si ella fuera él, ¿habrías elegido esa palabra?
 message.fallback = Darn! I wish this worked!
 message.plugin.added = Se ha añadido el plug-in #BiasCorrect de Catalyst a este canal. Al igual que el corrector ortográfico, pero para el sesgo de género, este plug-in te marcará cualquier sesgo inconsciente en tiempo real y te ofrecerá alternativas sin sesgo.\n\nPulsa "Autorizar" ahora para convertirte en catalizador(a) del cambio, al ayudar a implementar #BiasCorrect en el lugar de trabajo con una palabra a la vez.
@@ -19,6 +19,6 @@ message.specify.action = No action specified. Supported actions: [help]
 message.unsupported.action = Unsupported action: {0}.  Supported actions: [help]
 
 button.correct = Bias Correct
-button.ignore = Ignore
-button.learn = Learn More
-button.authorize = Authorize
+button.ignore = Ignorar
+button.learn = Más información
+button.authorize = Autorizar
