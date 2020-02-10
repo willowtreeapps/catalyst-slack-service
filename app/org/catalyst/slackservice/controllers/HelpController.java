@@ -22,7 +22,7 @@ public class HelpController extends Controller {
     private final MessagesApi _messagesApi;
     private final AppService _slackService;
 
-    private final static String BIAS_CORRECT = "/bias-correct-v2";
+    private final static String BIAS_CORRECT = "/bias-correct";
     private final static String TOKEN = "token";
     private final static String COMMAND = "command";
     private final static String TEXT = "text";
