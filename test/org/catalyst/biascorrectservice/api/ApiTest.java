@@ -1,12 +1,12 @@
 package org.catalyst.biascorrectservice.api;
 
+import org.catalyst.biascorrectservice.api.payloads.request.MessagePayload;
 import org.catalyst.biascorrectservice.api.payloads.response.MessageResponse;
 import org.catalyst.biascorrectservice.api.requests.Correct;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.catalyst.biascorrectservice.api.payloads.request.MessagePayload;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
