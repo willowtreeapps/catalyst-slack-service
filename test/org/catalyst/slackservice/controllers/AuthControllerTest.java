@@ -25,6 +25,7 @@ public class AuthControllerTest extends WithApplication {
 
     private MockDbHandler dbManager = new MockDbHandler();
     private static final String URI = "/bias-correct/v2/slack/auth/redirect";
+
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
