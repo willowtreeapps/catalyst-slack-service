@@ -137,7 +137,7 @@ public class SlackService implements AppService, WSBodyReadables {
     @Override
     public CompletionStage<SlackLocale> getConversationLocale(String channel) {
         var request = _wsClient.url(_config.getConversationsInfoUrl()).
-                addQueryParameter(QUERY_PARAM_TOKEN, _config.getAppOauthToken()).
+                addQueryParameter(QUERY_PARAM_TOKEN, _config.getBotOauthToken()).
                 addQueryParameter(QUERY_PARAM_CHANNEL, channel).
                 addQueryParameter(QUERY_PARAM_INCLUDE_LOCALE, "true");
         var jsonPromise = request.get();
