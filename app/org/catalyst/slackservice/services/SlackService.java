@@ -58,8 +58,8 @@ public class SlackService implements AppService, WSBodyReadables {
 
     @Override
     public CompletionStage<SlackResponse> postSuggestion(final MessageHandler messages, final Event event, final String correction) {
-        var botReply = MessageGenerator.generateSuggestion(messages, event, correction, _config.getAppOauthToken());
-        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getAppOauthToken());
+        var botReply = MessageGenerator.generateSuggestion(messages, event, correction, _config.getBotOauthToken());
+        return postReply(_config.getPostEphemeralUrl(), botReply, _config.getBotOauthToken());
     }
 
     @Override
@@ -67,24 +67,24 @@ public class SlackService implements AppService, WSBodyReadables {
 
         String url = _config.getPostEphemeralUrl();
         Message message = MessageGenerator.generateUserJoinedMessage(messages, event,
-                _config.getAppOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+                _config.getBotOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
 
         if (_config.getBotId().equals(event.user)) {
             url = _config.getPostMessageUrl();
             message = MessageGenerator.generatePluginAddedMessage(messages, event,
-                _config.getAppOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+                _config.getBotOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
         }
 
-        return postReply(url, message, _config.getAppOauthToken());
+        return postReply(url, message, _config.getBotOauthToken());
     }
 
     @Override
     public CompletionStage<SlackResponse> postReauthMessage(final MessageHandler messages, final Event event) {
         String url = _config.getPostEphemeralUrl();
         Message message = MessageGenerator.generatePluginAddedMessage(messages, event,
-                _config.getAppOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+                _config.getBotOauthToken(), _config.getAppSigninUrl(), _config.getLearnMoreUrl());
         message.user = event.user;
-        return postReply(url, message, _config.getAppOauthToken());
+        return postReply(url, message, _config.getBotOauthToken());
     }
 
     @Override
@@ -102,12 +102,12 @@ public class SlackService implements AppService, WSBodyReadables {
     @Override
     public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
         var message = new Message();
-        message.token = _config.getAppOauthToken();
+        message.token = _config.getBotOauthToken();
         message.channel = iMessage.channel.id;
         message.text = msg.get(MessageHandler.LEARN_MORE);
         message.user = iMessage.user.id;
 
-        return postReply(_config.getPostEphemeralUrl(), message, _config.getAppOauthToken());
+        return postReply(_config.getPostEphemeralUrl(), message, _config.getBotOauthToken());
     }
 
     @Override
@@ -136,11 +136,11 @@ public class SlackService implements AppService, WSBodyReadables {
     @Override
     public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
         var message = new Message();
-        message.token = _config.getAppOauthToken();
+        message.token = _config.getBotOauthToken();
         message.channel = event.channel;
         message.text = messages.get(MessageHandler.PLUGIN_INFO);
 
-        return postReply(_config.getPostMessageUrl(), message, _config.getAppOauthToken());
+        return postReply(_config.getPostMessageUrl(), message, _config.getBotOauthToken());
     }
 
     @Override
