@@ -58,10 +58,10 @@ jobs:
         env:
           DOCKER_REPOSITORY: ${{ secrets.PROD_DOCKER_REPOSITORY }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          VERSION_NUMBER: $BUILD_NUMBER
+          VERSION_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
         run: |
+          sbt docker:publish
           echo "::set-output name=image::$DOCKER_REPOSITORY/$PROJECT_NAME:$VERSION_NUMBER"
-#          sbt docker:publish
 
       - name: Initialize task definition
         id: task-def-init
