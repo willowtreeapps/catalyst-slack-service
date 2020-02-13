@@ -1,4 +1,4 @@
-name: Build and Deploy to ECS
+name: Build and Deploy to Dev
 
 #on:
 #  pull_request:
@@ -51,11 +51,6 @@ jobs:
         uses: einaregilsson/build-number@v2
         with:
           token: ${{secrets.github_token}}
-      - name: Upload build number
-        uses: actions/upload-artifact@v1
-        with:
-          name: BUILD_NUMBER
-          path: BUILD_NUMBER
 
       - name: Print generated build number
         run: echo Build number is $BUILD_NUMBER

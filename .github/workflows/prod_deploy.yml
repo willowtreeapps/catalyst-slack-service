@@ -1,4 +1,4 @@
-name: Production Deployment
+name: Deploy to Production
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Prod
+    name: Prod deployment
     runs-on: ubuntu-latest
 
     steps:
@@ -43,24 +43,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-#      - name: Generate build number
-#        id: buildnumber
-#        uses: einaregilsson/build-number@v2
-#        with:
-#          token: ${{secrets.github_token}}
-#      - name: Upload build number
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: BUILD_NUMBER
-#          path: BUILD_NUMBER
-
-      - name: Download build number
-        uses: actions/download-artifact@v1
-        with:
-          name: BUILD_NUMBER
-      - name: Restore build number
+      - name: Generate build number
         id: buildnumber
         uses: einaregilsson/build-number@v2
+        with:
+          token: ${{secrets.github_token}}
+          prefix: prod
 
       - name: Print generated build number
         run: echo Build number is $BUILD_NUMBER
@@ -73,7 +61,6 @@ jobs:
           VERSION_NUMBER: $BUILD_NUMBER
         run: |
           echo "::set-output name=image::$DOCKER_REPOSITORY/$PROJECT_NAME:$VERSION_NUMBER"
-
 #          sbt docker:publish
 
       - name: Initialize task definition
