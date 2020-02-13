@@ -1,19 +1,16 @@
-name: Build and Deploy to ECS
+name: Production Deployment
 
-#on:
-#  pull_request:
-#    types: [closed]
-#    branches:
-#      - master
+on:
+  push:
+    branches:
+      - feature/prod-cicd
 
-#temporary
-on: repository_dispatch
+#on: repository_dispatch
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy to Prod
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged
 
     steps:
       - name: Checkout
@@ -33,43 +30,44 @@ jobs:
       - name: Run api tests
         run: sbt "testOnly **biascorrectservice.api*"
         env:
-          BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
+          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v1
-        with:
-          token: ${{secrets.github_token}}
-
+#      - name: Generate build number
+#        id: buildnumber
+#        uses: einaregilsson/build-number@v1
+#        with:
+#          token: ${{secrets.PROD_github_token}}
+#
       - name: Print generated build number
         run: echo Build number is $BUILD_NUMBER
 
       - name: Build and publish docker image
         id: build-image
         env:
-          DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
+          DOCKER_REPOSITORY: ${{ secrets.PROD_DOCKER_REPOSITORY }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          VERSION_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
+          VERSION_NUMBER: $BUILD_NUMBER
         run: |
-          sbt docker:publish
           echo "::set-output name=image::$DOCKER_REPOSITORY/$PROJECT_NAME:$VERSION_NUMBER"
+
+#          sbt docker:publish
 
       - name: Initialize task definition
         id: task-def-init
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_ENVIRONMENT: dev
+          AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
+          AWS_ENVIRONMENT: prod
         run: |
           sh ./scripts/init_task_definition.sh
 
@@ -78,14 +76,17 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: ${{ secrets.CONTAINER_NAME }}
+          container-name: ${{ secrets.PROD_CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ secrets.SERVICE_NAME }}
-          cluster: ${{ secrets.CLUSTER_NAME }}
-          #currently taking approx 6 mins to check stability
-          wait-for-service-stability: true
+      - name: Print task definition
+        run: cat task-definition.json
+
+#      - name: Deploy Amazon ECS task definition
+#        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#        with:
+#          task-definition: ${{ steps.task-def.outputs.task-definition }}
+#          service: ${{ secrets.PROD_SERVICE_NAME }}
+#          cluster: ${{ secrets.PROD_CLUSTER_NAME }}
+#          #currently taking approx 6 mins to check stability
+#          wait-for-service-stability: true
