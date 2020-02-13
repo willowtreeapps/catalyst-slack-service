@@ -24,13 +24,13 @@ jobs:
       - name: Setup sbt
         run: sbt --version && sbt --version
 
-      - name: Run unit tests
-        run: sbt "testOnly **slackservice*"
-
-      - name: Run api tests
-        run: sbt "testOnly **biascorrectservice.api*"
-        env:
-          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
+#      - name: Run unit tests
+#        run: sbt "testOnly **slackservice*"
+#
+#      - name: Run api tests
+#        run: sbt "testOnly **biascorrectservice.api*"
+#        env:
+#          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -43,12 +43,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-#      - name: Generate build number
-#        id: buildnumber
-#        uses: einaregilsson/build-number@v1
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v2
+        with:
+          token: ${{secrets.github_token}}
+      - name: Upload build number
+        uses: actions/upload-artifact@v1
+        with:
+          name: BUILD_NUMBER
+          path: BUILD_NUMBER
+
+#      - name: Download build number
+#        uses: actions/download-artifact@v1
 #        with:
-#          token: ${{secrets.PROD_github_token}}
-#
+#          name: BUILD_NUMBER
+#      - name: Restore build number
+#        id: buildnumber
+#        uses: einaregilsson/build-number@v2
+
       - name: Print generated build number
         run: echo Build number is $BUILD_NUMBER
 
