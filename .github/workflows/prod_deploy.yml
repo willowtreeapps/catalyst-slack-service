@@ -24,13 +24,13 @@ jobs:
       - name: Setup sbt
         run: sbt --version && sbt --version
 
-#      - name: Run unit tests
-#        run: sbt "testOnly **slackservice*"
-#
-#      - name: Run api tests
-#        run: sbt "testOnly **biascorrectservice.api*"
-#        env:
-#          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
+      - name: Run unit tests
+        run: sbt "testOnly **slackservice*"
+
+      - name: Run api tests
+        run: sbt "testOnly **biascorrectservice.api*"
+        env:
+          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -79,14 +79,11 @@ jobs:
           container-name: ${{ secrets.PROD_CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Print task definition
-        run: cat task-definition.json
-
-#      - name: Deploy Amazon ECS task definition
-#        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-#        with:
-#          task-definition: ${{ steps.task-def.outputs.task-definition }}
-#          service: ${{ secrets.PROD_SERVICE_NAME }}
-#          cluster: ${{ secrets.PROD_CLUSTER_NAME }}
-#          #currently taking approx 6 mins to check stability
-#          wait-for-service-stability: true
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.PROD_SERVICE_NAME }}
+          cluster: ${{ secrets.PROD_CLUSTER_NAME }}
+          #currently taking approx 6 mins to check stability
+          wait-for-service-stability: true
