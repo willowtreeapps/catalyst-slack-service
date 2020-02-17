@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Dev Deployment
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged
 
