@@ -1,14 +1,9 @@
 name: Run Tests
 
-#on:
-#  push:
-#    branches-ignore:
-#      - master
-
-#temporary
-on: repository_dispatch
-
-
+on:
+  push:
+    branches-ignore:
+      - master
 
 jobs:
   build:

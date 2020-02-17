@@ -1,13 +1,10 @@
 name: Build and Deploy to Dev
 
-#on:
-#  pull_request:
-#    types: [closed]
-#    branches:
-#      - master
-
-#temporary
-on: repository_dispatch
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
 
 jobs:
   deploy:

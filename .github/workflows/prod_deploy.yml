@@ -5,9 +5,7 @@ name: Deploy to Production
 #    branches:
 #      - feature/prod-cicd
 
-on:
-  repository_dispatch:
-    types: prod-deploy
+on: repository_dispatch
 
 jobs:
   deploy:
