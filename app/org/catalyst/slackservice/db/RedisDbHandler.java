@@ -18,6 +18,7 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
     private static final ZoneId ET = ZoneId.of("America/New_York");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String USER_TOKENS = "user_tokens";
+    private static final String TEAM_NAMES = "team_names";
 
     @Inject
     public RedisDbHandler(JedisPool jedisPool) {
@@ -49,6 +50,18 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
         logger.debug("token for {} {} {}", key.teamId, key.userId, ((userToken == null) ? "not found" : "found"));
         return userToken;
+    }
+
+    @Override
+    public void setTeamName(String teamId, String teamName) {
+        if (teamId == null || teamName == null) {
+            logger.error("set team name failed. teamId: {}, teamName: {}", teamId, teamName);
+            return;
+        }
+
+        try (Jedis jedis = _jedisPool.getResource()) {
+            jedis.hset( TEAM_NAMES, teamId, teamName);
+        }
     }
 
     @Override

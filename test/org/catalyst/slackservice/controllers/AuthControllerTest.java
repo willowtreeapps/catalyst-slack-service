@@ -1,5 +1,6 @@
 package org.catalyst.slackservice.controllers;
 
+import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.MockDbHandler;
 import org.catalyst.slackservice.db.TokenKey;
@@ -33,6 +34,7 @@ public class AuthControllerTest extends WithApplication {
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
                 .overrides(bind(TokenHandler.class).toInstance(dbManager))
+                .overrides(bind(AnalyticsHandler.class).toInstance(dbManager))
                 .build();
     }
 

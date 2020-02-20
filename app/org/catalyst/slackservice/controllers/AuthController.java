@@ -1,5 +1,6 @@
 package org.catalyst.slackservice.controllers;
 
+import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.TokenKey;
 import org.slf4j.LoggerFactory;
@@ -24,13 +25,15 @@ public class AuthController extends Controller {
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
     private final TokenHandler _tokenDb;
+    private final AnalyticsHandler _analyticsDb;
 
     @Inject
-    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db) {
+    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db, AnalyticsHandler analyticsDb) {
         this._service = service;
         this._config = config;
         this._messagesApi = messagesApi;
         this._tokenDb = db;
+        this._analyticsDb = analyticsDb;
     }
 
     /**
@@ -56,6 +59,11 @@ public class AuthController extends Controller {
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,
                         "error", response.error))));
+            }
+
+            var teamName = response.team != null ? response.team.name : null;
+            if (teamName != null) {
+                _analyticsDb.setTeamName(teamId, teamName);
             }
 
             var dbKey = new TokenKey();
