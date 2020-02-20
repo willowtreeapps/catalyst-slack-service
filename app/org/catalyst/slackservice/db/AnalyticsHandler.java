@@ -5,4 +5,5 @@ public interface AnalyticsHandler {
     void incrementIgnoredMessageCounts(AnalyticsKey key);
     void incrementLearnMoreMessageCounts(AnalyticsKey key);
     void incrementCorrectedMessageCounts(AnalyticsKey key);
+    void setTeamName(String teamId, String teamName);
 }

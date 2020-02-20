@@ -40,4 +40,9 @@ public class MockDbHandler implements TokenHandler, AnalyticsHandler {
     public String getUserToken(TokenKey key) {
         return _userTokens.get(String.format("%s_%s", key.teamId, key.userId));
     }
+
+    @Override
+    public void setTeamName(String teamId, String teamName) {
+
+    }
 }
