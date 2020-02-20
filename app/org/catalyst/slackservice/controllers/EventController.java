@@ -135,11 +135,9 @@ public class EventController extends Controller {
      * @return
      */
     private CompletionStage<Result> handleEventCallback(final Event event) {
-        boolean isBotMessage = _config.getBotId().equals(event.botId) &&
-                _config.getBotUserName().equals(event.username);
-
         boolean isMessageEvent = SUBTYPE_MESSAGE.equals(event.type) && event.text != null;
         boolean isChannelJoinEvent = SUBTYPE_CHANNEL_JOIN.equals(event.type);
+        boolean isBotMessage = _config.getBotId().equals(event.user) && isMessageEvent;
 
         if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
             return ResultHelper.ok();
