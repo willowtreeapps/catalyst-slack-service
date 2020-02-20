@@ -1,6 +1,8 @@
 package org.catalyst.slackservice.db;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -19,6 +21,8 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String USER_TOKENS = "user_tokens";
     private static final String TEAM_NAMES = "team_names";
+    private static final String BOT_TOKENS = "bot_tokens";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Inject
     public RedisDbHandler(JedisPool jedisPool) {
@@ -62,6 +66,40 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
         try (Jedis jedis = _jedisPool.getResource()) {
             jedis.hset( TEAM_NAMES, teamId, teamName);
         }
+    }
+
+    @Override
+    public void setBotInfo(String teamId, Bot bot) {
+        if (teamId == null || bot.userId == null || bot.token == null) {
+            logger.error("set bot token failed. teamId: {}, botName: {}, token null ? {}", teamId, bot.userId, (bot.token == null));
+            return;
+        }
+
+        try (Jedis jedis = _jedisPool.getResource()) {
+            jedis.hset(BOT_TOKENS, teamId, OBJECT_MAPPER.writeValueAsString(bot));
+        } catch (JsonProcessingException e) {
+            logger.error("unable to set bot info for team {} {}", teamId, e.getMessage());
+        }
+    }
+
+    @Override
+    public Bot getBotInfo(String teamId) {
+        if (teamId == null) {
+            return null;
+        }
+
+        Bot bot = null;
+        try (Jedis jedis = _jedisPool.getResource()) {
+            var value = jedis.hget( BOT_TOKENS, teamId );
+            if (value != null) {
+                bot = OBJECT_MAPPER.readValue(value, Bot.class);
+            }
+        } catch (JsonProcessingException e) {
+            logger.error("unable to process bot info for team {} {}", teamId, e.getMessage());
+        }
+
+        logger.debug("bot info for {} {}", teamId, ((bot == null) ? "not found" : "found"));
+        return bot;
     }
 
     @Override

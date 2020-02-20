@@ -1,9 +1,6 @@
 package org.catalyst.slackservice.controllers;
 
-import org.catalyst.slackservice.db.AnalyticsHandler;
-import org.catalyst.slackservice.db.MockDbHandler;
-import org.catalyst.slackservice.db.TokenHandler;
-import org.catalyst.slackservice.db.TokenKey;
+import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
 import org.catalyst.slackservice.services.AppService;
@@ -44,6 +41,11 @@ public class EventControllerTest extends WithApplication {
         token.userId = "USER123";
         token.teamId = "TEAM123";
         mockDbHandler.setUserToken(token, "xoxp-1234");
+
+        Bot bot = new Bot();
+        bot.token = "xoxb-2345";
+        bot.userId = "BOT123";
+        mockDbHandler.setBotInfo("TEAM123", bot);
     }
 
     @Test
@@ -184,14 +186,9 @@ public class EventControllerTest extends WithApplication {
 
     @Test
     public void testBotMessageIgnored() {
-        var eventRequest = new EventController.Request();
-        eventRequest.token = "valid_token_123";
-        eventRequest.type = "event_callback";
-        eventRequest.event = new Event();
+        var eventRequest = getValidEventCallback();
         eventRequest.event.text = "bot message";
-        eventRequest.event.botId = "valid_bot_id";
-        eventRequest.event.username = "valid_bot_username";
-        eventRequest.event.channel = "valid_channel_123";
+        eventRequest.event.user = "BOT123";
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)

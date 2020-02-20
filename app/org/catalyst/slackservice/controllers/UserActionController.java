@@ -95,6 +95,10 @@ public class UserActionController extends Controller {
     }
 
     private CompletionStage<Result> handleUserAction(final InteractiveMessage iMessage) {
+        var bot = _tokenDb.getBotInfo(iMessage.team.id);
+        if (bot == null || bot.userId == null || bot.token == null) {
+            return ResultHelper.ok();
+        }
 
         var action = iMessage.actions.stream().findFirst().get();
 
@@ -102,7 +106,7 @@ public class UserActionController extends Controller {
         dbKey.teamId = iMessage.team.id;
         dbKey.channelId = iMessage.channel.id;
 
-        var localeResult = _slackService.getConversationLocale(iMessage.channel.id);
+        var localeResult = _slackService.getConversationLocale(iMessage.channel.id, bot);
 
         return localeResult.thenComposeAsync(slackLocale -> {
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
@@ -116,7 +120,7 @@ public class UserActionController extends Controller {
             if (action.value.equals(Action.LEARN_MORE)) {
                 _analyticsDb.incrementLearnMoreMessageCounts(dbKey);
 
-                return _slackService.postLearnMore(localizedMessages, iMessage).thenApplyAsync(response -> noContent(), _ec.current());
+                return _slackService.postLearnMore(localizedMessages, iMessage, bot).thenApplyAsync(response -> noContent(), _ec.current());
             }
 
             if (action.value.equals(Action.YES)) {
