@@ -313,4 +313,33 @@ public class SlackServiceTest {
         }
     }
 
+    @Test
+    public void testPostReauthorization() throws Exception {
+        var event = new Event();
+        event.ts = "valid_callback_id";
+        event.channel = "valid_channel";
+        event.user = "USER123";
+
+        var response = service.postReauthMessage(msg, event, bot)
+                .toCompletableFuture()
+                .get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals(true, response.ok);
+        Assert.assertEquals(EPHEMERAL_TS, response.messageTs);
+    }
+
+    @Test
+    public void testPostCustomMessage() throws Exception {
+        var message = new Message();
+        message.channel = "valid_channel";
+        message.user = "USER123";
+        message.text = "text";
+
+        var response = service.postCustomMessage(config.getPostEphemeralUrl(), message, bot)
+                .toCompletableFuture()
+                .get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals(true, response.ok);
+        Assert.assertEquals(EPHEMERAL_TS, response.messageTs);
+    }
 }

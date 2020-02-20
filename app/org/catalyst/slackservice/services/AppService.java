@@ -1,10 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.db.Bot;
-import org.catalyst.slackservice.domain.AuthResponse;
-import org.catalyst.slackservice.domain.Event;
-import org.catalyst.slackservice.domain.InteractiveMessage;
-import org.catalyst.slackservice.domain.SlackResponse;
+import org.catalyst.slackservice.domain.*;
 import org.catalyst.slackservice.util.SlackLocale;
 import org.catalyst.slackservice.util.MessageHandler;
 
@@ -29,4 +26,6 @@ public interface AppService {
     CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event, Bot bot);
 
     CompletionStage<SlackLocale> getConversationLocale(String channel, Bot bot);
+
+    CompletionStage<SlackResponse> postCustomMessage(String url, Message message, Bot bot);
 }

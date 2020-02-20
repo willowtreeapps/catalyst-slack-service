@@ -81,11 +81,10 @@ public class SlackService implements AppService, WSBodyReadables {
 
     @Override
     public CompletionStage<SlackResponse> postReauthMessage(final MessageHandler messages, final Event event, final Bot bot) {
-        String url = _config.getPostEphemeralUrl();
         Message message = MessageGenerator.generatePluginAddedMessage(messages, event,
                 bot.token, _config.getAppSigninUrl(), _config.getLearnMoreUrl());
         message.user = event.user;
-        return postReply(url, message, bot.token);
+        return postReply(_config.getPostEphemeralUrl(), message, bot.token);
     }
 
     @Override
@@ -169,5 +168,12 @@ public class SlackService implements AppService, WSBodyReadables {
             logger.debug("user locale " + localeCode);
             return new SlackLocale(localeCode);
         } , _ec.current());
+    }
+
+    @Override
+    public CompletionStage<SlackResponse> postCustomMessage(String url, Message message, Bot bot) {
+        message.token = bot.token;
+
+        return postReply(url, message, message.token);
     }
 }

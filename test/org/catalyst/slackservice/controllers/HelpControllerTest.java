@@ -11,17 +11,14 @@ import org.junit.Before;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
-import play.libs.Json;
 import play.mvc.Http;
 import play.test.WithApplication;
 
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static play.inject.Bindings.bind;
 import static play.mvc.Http.Status.NO_CONTENT;
-import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.*;
 
 public class HelpControllerTest extends WithApplication {
@@ -78,11 +75,7 @@ public class HelpControllerTest extends WithApplication {
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
-        var body = contentAsBytes(result).toArray();
-        var text = Json.parse(body).path("text").textValue();
-
-        assertTrue(text.indexOf("random") > -1);
-        assertEquals(OK, result.status());
+        assertEquals(NO_CONTENT, result.status());
     }
 
     @Test
@@ -94,23 +87,19 @@ public class HelpControllerTest extends WithApplication {
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
-        var body = contentAsBytes(result).toArray();
-        var text = Json.parse(body).path("text").textValue();
-
-        assertTrue(text.indexOf("No action specified") > -1);
-        assertEquals(OK, result.status());
+        assertEquals(NO_CONTENT, result.status());
     }
 
     @Test
     public void testHelpContent() {
         var requestBody = getValidHelpRequest();
         var request = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=7b6a6fb122a9ee3783fb2ab0bbe356eb8523ca706547547f6b410fba0112dd79")
+                .header("X-Slack-Signature", "v0=cef2363a542926cc08ff21307a25a9a1f08503333664f8259d79ae99aa582a19")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
         var result = route(app, request);
-        assertEquals(OK, result.status());
+        assertEquals(NO_CONTENT, result.status());
     }
 
     @Test
@@ -142,6 +131,7 @@ public class HelpControllerTest extends WithApplication {
         requestBody.put("text", new String[]{"help"});
         requestBody.put("channel_id", new String[]{"valid_channel_123"});
         requestBody.put("team_id", new String[]{"TEAM123"});
+        requestBody.put("user_id", new String[]{"USER123"});
         return requestBody;
     }
 }
