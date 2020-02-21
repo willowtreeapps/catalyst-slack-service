@@ -1,10 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.db.Bot;
-import org.catalyst.slackservice.domain.AuthResponse;
-import org.catalyst.slackservice.domain.Event;
-import org.catalyst.slackservice.domain.InteractiveMessage;
-import org.catalyst.slackservice.domain.SlackResponse;
+import org.catalyst.slackservice.domain.*;
 import org.catalyst.slackservice.util.MessageHandler;
 import org.catalyst.slackservice.util.SlackLocale;
 
@@ -98,5 +95,13 @@ public class MockSlackService implements AppService {
     @Override
     public CompletionStage<SlackLocale> getConversationLocale(String channel, Bot bot) {
         return CompletableFuture.completedFuture(new SlackLocale());
+    }
+
+    @Override
+    public CompletionStage<SlackResponse> postCustomMessage(String url, Message message, Bot bot) {
+        var response = new SlackResponse();
+        response.ok = true;
+        response.messageTs = "45678.90123";
+        return CompletableFuture.completedFuture(response);
     }
 }

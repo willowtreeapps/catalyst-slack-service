@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.controllers;
 
 import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.domain.Message;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.util.*;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
-import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 public class HelpController extends Controller {
@@ -31,6 +31,7 @@ public class HelpController extends Controller {
     private final static String HELP = "help";
     private static final String CHANNEL_ID = "channel_id";
     private static final String TEAM_ID = "team_id";
+    private final static String USER = "user_id";
 
     @Inject
     public HelpController(AppConfig config, MessagesApi messagesApi, AppService service, TokenHandler tokenDb) {
@@ -62,17 +63,18 @@ public class HelpController extends Controller {
         var text = PayloadHelper.getMapValue(body, TEXT);
         var channel = PayloadHelper.getMapValue(body, CHANNEL_ID);
         var team = PayloadHelper.getMapValue(body, TEAM_ID);
+        var user = PayloadHelper.getMapValue(body, USER);
 
-        logger.debug("command: {}, text: {}, channel: {}", command, text, channel);
+        logger.debug("command: {}, text: {}, channel: {}, user: {}", command, text, channel, user);
 
-        if (command.isEmpty() || !command.equals(BIAS_CORRECT) || channel.isEmpty()) {
+        if (!BIAS_CORRECT.equals(command) || channel.isEmpty() || user.isEmpty()) {
             return ResultHelper.noContent();
         }
 
-        return handleHelpRequest(channel, text, team);
+        return handleHelpRequest(user, channel, text, team);
     }
 
-    private CompletionStage<Result> handleHelpRequest(String channel, String text, String team) {
+    private CompletionStage<Result> handleHelpRequest(String user, String channel, String text, String team) {
         var bot = _tokenDb.getBotInfo(team);
         if (bot == null || bot.userId == null || bot.token == null) {
             return ResultHelper.noContent();
@@ -82,15 +84,27 @@ public class HelpController extends Controller {
 
         return localeResult.thenComposeAsync(slackLocale -> {
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
-            var message = localizedMessages.get(MessageHandler.PLUGIN_INFO);
+            var helpResponse = localizedMessages.get(MessageHandler.PLUGIN_INFO);
 
             if (text.isEmpty()) {
-                message = localizedMessages.get(MessageHandler.SPECIFY_ACTION);
+                helpResponse = localizedMessages.get(MessageHandler.SPECIFY_ACTION);
             } else if (!text.equals(HELP)) {
-                message = localizedMessages.get(MessageHandler.UNSUPPORTED_ACTION, text);
+                helpResponse = localizedMessages.get(MessageHandler.UNSUPPORTED_ACTION, text);
             }
 
-            return ResultHelper.ok(Json.toJson(Map.of(TEXT, message)));
+            var message = new Message();
+            message.user = user;
+            message.channel = channel;
+            message.text = helpResponse;
+
+            var postResult = _slackService.postCustomMessage(_config.getPostEphemeralUrl(), message, bot);
+            return postResult.thenApplyAsync(slackResponse -> {
+                var json = Json.toJson(slackResponse);
+                if (!slackResponse.ok) {
+                    logger.error("help response failed. channel: {} response: {}", channel, json);
+                }
+                return noContent();
+            });
         });
     }
 }
