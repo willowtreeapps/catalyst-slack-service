@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.controllers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
@@ -24,6 +25,7 @@ import play.mvc.Result;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class EventController extends Controller {
@@ -33,6 +35,7 @@ public class EventController extends Controller {
     private static final String TYPE_EVENT_CALLBACK = "event_callback";
     private static final String SUBTYPE_CHANNEL_JOIN = "member_joined_channel";
     private static final String SUBTYPE_MESSAGE = "message";
+    private static final String SUBTYPE_TOKENS_REVOKED = "tokens_revoked";
     private static final String VERIFICATION_CHALLENGE = "challenge";
     private static final String CHANNEL_TYPE_IM = "im";
     private static final String DIRECT_MESSAGE_HELP = "help";
@@ -42,6 +45,8 @@ public class EventController extends Controller {
         public String token;
         public String challenge;
         public String type;
+        @JsonProperty("team_id")
+        public String teamId;
         public Event event;
     }
 
@@ -110,7 +115,15 @@ public class EventController extends Controller {
 
         if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
             return handleURLVerification(eventRequest.challenge);
-        } else if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
+        }
+
+        if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
+
+            var isTokenRevokedEvent = SUBTYPE_TOKENS_REVOKED.equals(eventRequest.event.type);
+            if (isTokenRevokedEvent) {
+                return handleRevokeTokens(eventRequest.teamId, eventRequest.event);
+            }
+
             return handleEventCallback(eventRequest.event);
         }
 
@@ -212,6 +225,13 @@ public class EventController extends Controller {
         , _ec.current());
     }
 
+    private CompletionStage<Result> handleRevokeTokens(final String teamId, final Event event) {
+        return CompletableFuture.supplyAsync(() -> {
+            _tokendb.deleteTokens(teamId, event.tokens.oauth);
+            return noContent();
+        }, _ec.current());
+    }
+
     private Result handleSlackResponse(Event event, SlackResponse slackResponse, String errorMessage) {
         var json = Json.toJson(slackResponse);
         if (!slackResponse.ok) {
@@ -226,6 +246,6 @@ public class EventController extends Controller {
     }
 
     private static boolean isInvalidEventCallback(final Request request){
-        return request.type.equals(TYPE_EVENT_CALLBACK) && (request.event == null || request.event.channel == null);
+        return request.type.equals(TYPE_EVENT_CALLBACK) && (request.event == null || (!SUBTYPE_TOKENS_REVOKED.equals(request.event.type) && request.event.channel == null));
     }
 }

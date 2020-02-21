@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
     final Logger logger = LoggerFactory.getLogger(RedisDbHandler.class);
@@ -100,6 +101,21 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
         logger.debug("bot info for {} {}", teamId, ((bot == null) ? "not found" : "found"));
         return bot;
+    }
+
+    @Override
+    public void deleteTokens(String teamId, String[] tokens) {
+        if (teamId == null || tokens == null || tokens.length == 0) {
+            logger.error("unable to delete tokens for team {}. token null? {}", teamId, tokens == null);
+            return;
+        }
+
+        String[] newTokens = Arrays.stream(tokens).map(token -> format(teamId, token)).toArray(String[]::new);
+
+        try (Jedis jedis = _jedisPool.getResource()) {
+            logger.debug("deleting tokens {}", Arrays.asList(newTokens));
+            jedis.hdel( USER_TOKENS, newTokens);
+        }
     }
 
     @Override
