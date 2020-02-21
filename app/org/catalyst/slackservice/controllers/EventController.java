@@ -2,10 +2,7 @@ package org.catalyst.slackservice.controllers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.catalyst.slackservice.db.AnalyticsHandler;
-import org.catalyst.slackservice.db.AnalyticsKey;
-import org.catalyst.slackservice.db.TokenHandler;
-import org.catalyst.slackservice.db.TokenKey;
+import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
 import org.catalyst.slackservice.services.AppService;
@@ -135,42 +132,49 @@ public class EventController extends Controller {
      * @return
      */
     private CompletionStage<Result> handleEventCallback(final Event event) {
-        boolean isMessageEvent = SUBTYPE_MESSAGE.equals(event.type) && event.text != null;
-        boolean isChannelJoinEvent = SUBTYPE_CHANNEL_JOIN.equals(event.type);
-        boolean isBotMessage = _config.getBotId().equals(event.user) && isMessageEvent;
-
-        if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
+        var bot = _tokendb.getBotInfo(event.team);
+        if (bot == null || bot.userId == null || bot.token == null) {
             return ResultHelper.ok();
         }
 
-        var localeResult = _slackService.getConversationLocale(event.channel);
+        boolean isMessageEvent = SUBTYPE_MESSAGE.equals(event.type) && event.text != null;
+        boolean isChannelJoinEvent = SUBTYPE_CHANNEL_JOIN.equals(event.type);
+        boolean isBotMessage = bot.userId.equals(event.user) && isMessageEvent;
+
+        if (isBotMessage || event.user == null || !(isMessageEvent || isChannelJoinEvent)) {
+            logger.debug("handleEventCallback exiting isBotMessage: {}, event.user: {}, isMessageEvent:{}, isChannelJoinEvent: {}",
+                    isBotMessage, event.user, isMessageEvent, isChannelJoinEvent);
+            return ResultHelper.ok();
+        }
+
+        var localeResult = _slackService.getConversationLocale(event.channel, bot);
 
         return localeResult.thenComposeAsync(slackLocale -> {
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
 
             if (isChannelJoinEvent) {
-                return handleChannelJoin(localizedMessages, event);
+                return handleChannelJoin(localizedMessages, event, bot);
             }
 
             var isDirectMessage = CHANNEL_TYPE_IM.equalsIgnoreCase(event.channelType);
-            var isBotMentioned = event.text.contains("@" + _config.getBotId());
+            var isBotMentioned = event.text.contains("@" + bot.userId);
 
             if (event.text.toLowerCase().contains(DIRECT_MESSAGE_HELP) && (isDirectMessage || isBotMentioned)) {
-                return handleHelpRequest(localizedMessages, event);
+                return handleHelpRequest(localizedMessages, event, bot);
             }
-            return handleUserMessage(localizedMessages, event);
+            return handleUserMessage(localizedMessages, event, bot);
         });
     }
 
-    private CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event) {
-        return _slackService.postHelpMessage(messages, event).thenApplyAsync(slackResponse -> {
+    private CompletionStage<Result> handleHelpRequest(final MessageHandler messages, final Event event, final Bot bot) {
+        return _slackService.postHelpMessage(messages, event, bot).thenApplyAsync(slackResponse -> {
             var response = Json.toJson(slackResponse);
             logger.debug("help request {}", response);
             return slackResponse.ok ? ok(response) : badRequest(response);
         } , _ec.current());
     }
 
-    private CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event, final Bot bot) {
         var key = new AnalyticsKey();
         key.teamId = event.team;
         key.channelId = event.channel;
@@ -191,19 +195,19 @@ public class EventController extends Controller {
             // if user has not authorized, show auth prompt instead of the correction prompt
             var userToken = _tokendb.getUserToken(tokenKey);
             if (userToken == null) {
-                return _slackService.postReauthMessage(messages, event)
+                return _slackService.postReauthMessage(messages, event, bot)
                     .thenApplyAsync(slackResponse -> handleSlackResponse(event, slackResponse, "reauth failed"), _ec.current());
             }
 
-            return _slackService.postSuggestion(messages, event, correction)
+            return _slackService.postSuggestion(messages, event, correction, bot)
                 .thenApplyAsync(slackResponse -> handleSlackResponse(event, slackResponse, "postSuggestion failed")
                 , _ec.current());
         }, _ec.current());
     }
 
-    private CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event) {
+    private CompletionStage<Result> handleChannelJoin(final MessageHandler messages, final Event event, final Bot bot) {
 
-        return _slackService.postChannelJoin(messages, event).thenApplyAsync(slackResponse ->
+        return _slackService.postChannelJoin(messages, event, bot).thenApplyAsync(slackResponse ->
             handleSlackResponse(event, slackResponse, "channel join failed")
         , _ec.current());
     }

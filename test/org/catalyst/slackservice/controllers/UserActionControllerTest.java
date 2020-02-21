@@ -1,10 +1,9 @@
 package org.catalyst.slackservice.controllers;
 
-import org.catalyst.slackservice.db.AnalyticsHandler;
-import org.catalyst.slackservice.db.MockDbHandler;
-import org.catalyst.slackservice.db.TokenHandler;
+import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Action;
 import org.catalyst.slackservice.domain.InteractiveMessage;
+import org.junit.Before;
 import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -30,15 +29,24 @@ import static play.test.Helpers.*;
 public class UserActionControllerTest extends WithApplication {
 
     private static final String URI = "/bias-correct/v2/slack/actions";
+    private MockDbHandler mockDbHandler = new MockDbHandler();
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(TokenHandler.class).to(MockDbHandler.class))
-                .overrides(bind(AnalyticsHandler.class).to(MockDbHandler.class))
+                .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
+                .overrides(bind(AnalyticsHandler.class).toInstance(mockDbHandler))
                 .build();
+    }
+
+    @Before
+    public void setup() {
+        Bot bot = new Bot();
+        bot.token = "xoxb-2345";
+        bot.userId = "BOT123";
+        mockDbHandler.setBotInfo("TEAM123", bot);
     }
 
     @Test

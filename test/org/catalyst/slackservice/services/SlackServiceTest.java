@@ -1,5 +1,6 @@
 package org.catalyst.slackservice.services;
 
+import org.catalyst.slackservice.db.Bot;
 import org.catalyst.slackservice.domain.*;
 import org.junit.After;
 import org.junit.Assert;
@@ -30,6 +31,7 @@ public class SlackServiceTest {
     private SlackService service;
     private MessageHandler msg;
     private MockConfig config;
+    private Bot bot;
 
     private final static String INTERACTIVE_RESPONSE_URL = "/response_url/1234";
     private final static String EPHEMERAL_TS = "12345.67890";
@@ -38,6 +40,9 @@ public class SlackServiceTest {
     @Before
     public void setup() {
         config = new MockConfig();
+        bot = new Bot();
+        bot.userId = "BOT123";
+        bot.token = "xoxb-1234";
 
         Map<String, String> messagesMap = new HashMap<>();
         messagesMap.put("message.suggestion", "Suggested correction");
@@ -122,7 +127,7 @@ public class SlackServiceTest {
 
         var correction = "she's so thoughtful";
 
-        var reply = MessageGenerator.generateSuggestion(msg, event, correction, config.getBotOauthToken());
+        var reply = MessageGenerator.generateSuggestion(msg, event, correction, bot.token);
 
         Assert.assertEquals("Suggested correction", reply.text);
         Assert.assertEquals(correction, reply.attachments.get(0).actions.get(0).name);
@@ -132,7 +137,7 @@ public class SlackServiceTest {
     @Test
     public void testPostSuggestion() throws Exception {
         var event = new Event();
-        var response = service.postSuggestion(msg, event, "new correction")
+        var response = service.postSuggestion(msg, event, "new correction", bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -145,10 +150,10 @@ public class SlackServiceTest {
         var event = new Event();
         event.ts = "valid_callback_id";
         event.channel = "valid_channel";
-        event.user = config.getBotId();
+        event.user = bot.userId;
 
         var reply = MessageGenerator.generatePluginAddedMessage(msg, event,
-                config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
+                bot.token, config.getAppSigninUrl(), config.getLearnMoreUrl());
 
         Assert.assertEquals("Plugin added to channel", reply.text);
         Assert.assertEquals(null, reply.user);
@@ -162,7 +167,7 @@ public class SlackServiceTest {
         event.user = "USER123";
 
         var reply = MessageGenerator.generateUserJoinedMessage(msg, event,
-                config.getBotOauthToken(), config.getAppSigninUrl(), config.getLearnMoreUrl());
+                bot.token, config.getAppSigninUrl(), config.getLearnMoreUrl());
 
         Assert.assertEquals("User joined channel with plugin", reply.text);
         Assert.assertEquals(event.user, reply.user);
@@ -175,7 +180,7 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var response = service.postChannelJoin(msg, event)
+        var response = service.postChannelJoin(msg, event, bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -188,9 +193,9 @@ public class SlackServiceTest {
         var event = new Event();
         event.ts = "valid_callback_id";
         event.channel = "valid_channel";
-        event.user = "valid_bot_id";
+        event.user = bot.userId;
 
-        var response = service.postChannelJoin(msg, event)
+        var response = service.postChannelJoin(msg, event, bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -221,7 +226,7 @@ public class SlackServiceTest {
         iMessage.user = new InteractiveMessage.User();
         iMessage.user.id = "USER123";
 
-        var response = service.postLearnMore(msg, iMessage)
+        var response = service.postLearnMore(msg, iMessage, bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -269,7 +274,7 @@ public class SlackServiceTest {
         event.channel = "valid_channel";
         event.user = "USER123";
 
-        var response = service.postHelpMessage(msg, event)
+        var response = service.postHelpMessage(msg, event, bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -279,7 +284,7 @@ public class SlackServiceTest {
 
     @Test
     public void testGetConversationsInfoLocale() throws Exception {
-        var response = service.getConversationLocale("valid_channel")
+        var response = service.getConversationLocale("valid_channel", bot)
                 .toCompletableFuture()
                 .get(10, TimeUnit.SECONDS);
 
@@ -298,7 +303,7 @@ public class SlackServiceTest {
             var ec = new HttpExecutionContext(ForkJoinPool.commonPool());
 
             SlackService service = new SlackService(ec, config, wsClient);
-            var response = service.getConversationLocale("CHANNEL123")
+            var response = service.getConversationLocale("CHANNEL123", bot)
                     .toCompletableFuture()
                     .get(10, TimeUnit.SECONDS);
 

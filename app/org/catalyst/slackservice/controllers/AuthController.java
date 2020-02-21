@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.controllers;
 
 import org.catalyst.slackservice.db.AnalyticsHandler;
+import org.catalyst.slackservice.db.Bot;
 import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.TokenKey;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class AuthController extends Controller {
     private final MessagesApi _messagesApi;
     private final TokenHandler _tokenDb;
     private final AnalyticsHandler _analyticsDb;
+    private static final String BOT_TOKEN_TYPE = "bot";
 
     @Inject
     public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db, AnalyticsHandler analyticsDb) {
@@ -64,6 +66,13 @@ public class AuthController extends Controller {
             var teamName = response.team != null ? response.team.name : null;
             if (teamName != null) {
                 _analyticsDb.setTeamName(teamId, teamName);
+            }
+
+            if (BOT_TOKEN_TYPE.equals(response.tokenType) && response.botUserId != null && response.accessToken != null) {
+                var bot = new Bot();
+                bot.token = response.accessToken;
+                bot.userId = response.botUserId;
+                _tokenDb.setBotInfo(teamId, bot);
             }
 
             var dbKey = new TokenKey();
