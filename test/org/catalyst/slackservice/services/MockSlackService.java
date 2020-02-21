@@ -1,5 +1,6 @@
 package org.catalyst.slackservice.services;
 
+import org.catalyst.slackservice.db.Bot;
 import org.catalyst.slackservice.domain.AuthResponse;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.InteractiveMessage;
@@ -12,7 +13,7 @@ import java.util.concurrent.CompletionStage;
 
 public class MockSlackService implements AppService {
     @Override
-    public CompletionStage<SlackResponse> postSuggestion(MessageHandler msg, Event event, String correction) {
+    public CompletionStage<SlackResponse> postSuggestion(MessageHandler msg, Event event, String correction, Bot bot) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";
@@ -34,13 +35,16 @@ public class MockSlackService implements AppService {
             authResponse.user = new AuthResponse.AuthedUser();
             authResponse.user.id = "USER123";
             authResponse.user.accessToken = "xoxp-token-123";
+            authResponse.tokenType = "bot";
+            authResponse.botUserId = "BOT123";
+            authResponse.accessToken = "xoxb-token-234";
         }
 
         return CompletableFuture.completedFuture(authResponse);
     }
 
     @Override
-    public CompletionStage<SlackResponse> postChannelJoin(MessageHandler msg, Event event) {
+    public CompletionStage<SlackResponse> postChannelJoin(MessageHandler msg, Event event, Bot bot) {
         var response = new SlackResponse();
         response.ok = true;
 
@@ -52,7 +56,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postReauthMessage(MessageHandler msg, Event event) {
+    public CompletionStage<SlackResponse> postReauthMessage(MessageHandler msg, Event event, Bot bot) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "34567.89012";
@@ -60,7 +64,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage) {
+    public CompletionStage<SlackResponse> postLearnMore(MessageHandler msg, InteractiveMessage iMessage, Bot bot) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";
@@ -84,7 +88,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event) {
+    public CompletionStage<SlackResponse> postHelpMessage(MessageHandler messages, Event event, Bot bot) {
         var response = new SlackResponse();
         response.ok = true;
         response.messageTs = "12345.67890";
@@ -92,7 +96,7 @@ public class MockSlackService implements AppService {
     }
 
     @Override
-    public CompletionStage<SlackLocale> getConversationLocale(String channel) {
+    public CompletionStage<SlackLocale> getConversationLocale(String channel, Bot bot) {
         return CompletableFuture.completedFuture(new SlackLocale());
     }
 }

@@ -1,11 +1,15 @@
 package org.catalyst.slackservice.db;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MockDbHandler implements TokenHandler, AnalyticsHandler {
     private Map<String, String> _channelMessages = new ConcurrentHashMap<>();
     private Map<String, String> _userTokens = new ConcurrentHashMap<>();
+    private Map<String, String> _botTokens = new ConcurrentHashMap<>();
 
     @Override
     public void incrementMessageCounts(AnalyticsKey key) {
@@ -43,6 +47,28 @@ public class MockDbHandler implements TokenHandler, AnalyticsHandler {
 
     @Override
     public void setTeamName(String teamId, String teamName) {
+    }
 
+    @Override
+    public void setBotInfo(String teamId, Bot bot) {
+        try {
+            _botTokens.put(teamId, new ObjectMapper().writeValueAsString(bot));
+        } catch (JsonProcessingException e) {}
+    }
+
+    @Override
+    public Bot getBotInfo(String teamId) {
+        if (teamId == null) {
+            return null;
+        }
+
+        Bot bot = null;
+        try {
+            var value = _botTokens.get(teamId);
+            if (value != null) {
+                bot = new ObjectMapper().readValue(value, Bot.class);
+            }
+        } catch (JsonProcessingException e) {}
+        return bot;
     }
 }
