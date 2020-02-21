@@ -24,9 +24,12 @@ import play.mvc.Result;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Stream;
 
 public class EventController extends Controller {
     final Logger logger = LoggerFactory.getLogger(EventController.class);
@@ -85,49 +88,13 @@ public class EventController extends Controller {
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
 
-        // TODO: move outside of controller
-        var eventRequest = new Request();
         try {
-            eventRequest = new ObjectMapper().readValue(requestBodyAsBytes.toArray(), Request.class);
+            var eventRequest = new ObjectMapper().readValue(requestBodyAsBytes.toArray(), Request.class);
+            return RequestHandler.GetHandler(eventRequest, httpRequest, _config).handle(this, httpRequest, messages, eventRequest, logger);
         } catch (IOException e) {
             logger.error("unable to parse event request {}", e.getMessage());
             return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
         }
-
-        if (eventRequest.type == null) {
-            return ResultHelper.badRequest(messages, MessageHandler.MISSING_TYPE);
-        }
-
-        if (isInvalidUrlVerification(eventRequest)) {
-            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CHALLENGE);
-        }
-
-        if (isInvalidEventCallback(eventRequest)) {
-            return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
-        }
-
-        if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
-            logger.error("Request not verified");
-            return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
-        }
-
-        logger.debug("incoming event --> {}", Json.toJson(eventRequest).toString());
-
-        if (eventRequest.type.equals(TYPE_URL_VERIFICATION)) {
-            return handleURLVerification(eventRequest.challenge);
-        }
-
-        if (eventRequest.type.equals(TYPE_EVENT_CALLBACK)) {
-
-            var isTokenRevokedEvent = SUBTYPE_TOKENS_REVOKED.equals(eventRequest.event.type);
-            if (isTokenRevokedEvent) {
-                return handleRevokeTokens(eventRequest.teamId, eventRequest.event);
-            }
-
-            return handleEventCallback(eventRequest.event);
-        }
-
-        return ResultHelper.badRequest(messages, MessageHandler.UNSUPPORTED_TYPE);
     }
 
     /**
@@ -247,5 +214,118 @@ public class EventController extends Controller {
 
     private static boolean isInvalidEventCallback(final Request request){
         return request.type.equals(TYPE_EVENT_CALLBACK) && (request.event == null || (!SUBTYPE_TOKENS_REVOKED.equals(request.event.type) && request.event.channel == null));
+    }
+
+    private enum RequestHandler {
+        InvalidRequest { /* Not used in practice */
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return ResultHelper.badRequest(messages, MessageHandler.INVALID_REQUEST);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return false;
+            }
+        },
+        MissingType {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return ResultHelper.badRequest(messages, MessageHandler.MISSING_TYPE);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return request.type == null;
+            }
+        },
+        MissingChallenge {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return ResultHelper.badRequest(messages, MessageHandler.MISSING_CHALLENGE);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return isInvalidUrlVerification(request);
+            }
+        },
+        InvalidEvent {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return ResultHelper.badRequest(messages, MessageHandler.INVALID_EVENT);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return isInvalidEventCallback(request);
+            }
+        },
+        NotVerified {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                logger.error("Request not verified");
+                return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return !RequestVerifier.verified(httpRequest, config.getSigningSecret(), config.getToken(), request.token);
+            }
+        },
+        UrlVerification {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return controller.handleURLVerification(request.challenge);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return request.type.equals(TYPE_URL_VERIFICATION);
+            }
+        },
+        EventCallback {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return controller.handleEventCallback(request.event);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return request.type.equals(TYPE_EVENT_CALLBACK) && !SUBTYPE_TOKENS_REVOKED.equals(request.event.type);
+            }
+        },
+        SubtypeTokensRevoked {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return controller.handleRevokeTokens(request.teamId, request.event);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return request.type.equals(TYPE_EVENT_CALLBACK) && SUBTYPE_TOKENS_REVOKED.equals(request.event.type);
+            }
+        },
+        UnsupportedType {
+            @Override
+            public CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger) {
+                return ResultHelper.badRequest(messages, MessageHandler.UNSUPPORTED_TYPE);
+            }
+
+            @Override
+            public boolean matches(Request request, Http.Request httpRequest, AppConfig config) {
+                return false; /* Fallback type, should never match */
+            }
+        };
+
+        public abstract CompletionStage<Result> handle(EventController controller, Http.Request httpRequest, MessageHandler messages, Request request, Logger logger);
+        public abstract boolean matches(Request request, Http.Request httpRequest, AppConfig config);
+
+        public static RequestHandler GetHandler(Request request, Http.Request httpRequest, AppConfig config) {
+            return Arrays.stream(RequestHandler.values())
+                    .filter( x -> x.matches(request, httpRequest, config) )
+                    .findFirst()
+                    .orElse(RequestHandler.UnsupportedType);
+        }
     }
 }
