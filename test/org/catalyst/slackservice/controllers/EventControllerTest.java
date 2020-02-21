@@ -261,7 +261,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.text = "she's so quiet";
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=6dedc3a067ddd9c4c93cf4ca6e3ab2cfcc56d89fb85d02c153c81b3b2e8d35f1")
+                .header("X-Slack-Signature", "v0=679bf0a68c77b007a7d50aa4eb7df46c763c2c16153e551a70cd213380f149e7")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -283,7 +283,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.token = null;
 
         var httpRequest = new Http.RequestBuilder()
-                .header("X-Slack-Signature", "v0=2bcd1287bd7880367967d133c9693f5ea9d769b839ea4f6e9572578b8980dda0")
+                .header("X-Slack-Signature", "v0=679bf0a68c77b007a7d50aa4eb7df46c763c2c16153e551a70cd213380f149e7")
                 .header("X-Slack-Request-Timestamp", "1578867626")
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
@@ -359,6 +359,27 @@ public class EventControllerTest extends WithApplication {
 
         var result = route(app, httpRequest);
         assertEquals(OK, result.status());
+    }
+
+    @Test
+    public void testRevokeTokens() {
+        var event = new Event();
+        var eventRequest = new EventController.Request();
+        eventRequest.token = "valid_token_123";
+        eventRequest.type = "event_callback";
+        eventRequest.teamId = "new_team_234";
+        eventRequest.event = event;
+
+        event.type = "tokens_revoked";
+        event.tokens = new Event.Tokens();
+        event.tokens.oauth = new String[]{"revoked_user_123", "revoked_user_234"};
+
+        var httpRequest = new Http.RequestBuilder()
+                .method(POST)
+                .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
+
+        var result = route(app, httpRequest);
+        assertEquals(NO_CONTENT, result.status());
     }
 
     private static EventController.Request getValidEventCallback() {
