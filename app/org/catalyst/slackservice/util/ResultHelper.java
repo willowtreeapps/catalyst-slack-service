@@ -16,6 +16,12 @@ public class ResultHelper {
                 "error", messages.get(error)))));
     }
 
+    public static CompletionStage<Result> badRequest(String error) {
+        return CompletableFuture.completedFuture(Controller.badRequest( Json.toJson(Map.of(
+                "ok", Boolean.valueOf(false),
+                "error", error))));
+    }
+
     public static CompletionStage<Result> noContent() {
         return CompletableFuture.completedFuture(Controller.noContent());
     }

@@ -95,4 +95,28 @@ public class AuthControllerTest extends WithApplication {
         var result = route(app, request);
         assertEquals(FOUND, result.status());
     }
+
+    @Test
+    public void testCancelAuthorization() {
+        var request = new Http.RequestBuilder()
+                .method(GET)
+                .uri(URI + "?error=access_denied");
+
+        var result = route(app, request);
+        assertEquals(FOUND, result.status());
+    }
+
+    @Test
+    public void testUnknownError() {
+        var request = new Http.RequestBuilder()
+                .method(GET)
+                .uri(URI + "?error=unknown");
+
+        var result = route(app, request);
+        var body = contentAsBytes(result).toArray();
+        var error = Json.parse(body).path("error").textValue();
+
+        assertEquals(BAD_REQUEST, result.status());
+        assertEquals("unknown", error);
+    }
 }

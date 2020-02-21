@@ -28,6 +28,7 @@ public class AuthController extends Controller {
     private final TokenHandler _tokenDb;
     private final AnalyticsHandler _analyticsDb;
     private static final String BOT_TOKEN_TYPE = "bot";
+    private static final String ERROR_ACCESS_DENIED = "access_denied";
 
     @Inject
     public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db, AnalyticsHandler analyticsDb) {
@@ -43,10 +44,19 @@ public class AuthController extends Controller {
      */
     public CompletionStage<Result> handle(Http.Request httpRequest) {
         var requestCode = httpRequest.queryString("code");
+        var error = httpRequest.queryString("error");
 
-        if (requestCode.isEmpty()) {
+        if (requestCode.isEmpty() && error.isEmpty()) {
             var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
             return ResultHelper.badRequest(messages, MessageHandler.MISSING_CODE);
+        }
+
+        if (error.isPresent()) {
+            var errorValue = error.get();
+            if (ERROR_ACCESS_DENIED.equals(errorValue)) {
+                return CompletableFuture.completedFuture(found(_config.getLearnMoreUrl()));
+            }
+            return ResultHelper.badRequest(errorValue);
         }
 
         // send a get request to Slack with the code to get token for authed user
