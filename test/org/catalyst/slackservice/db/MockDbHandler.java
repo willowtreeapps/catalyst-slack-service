@@ -71,4 +71,15 @@ public class MockDbHandler implements TokenHandler, AnalyticsHandler {
         } catch (JsonProcessingException e) {}
         return bot;
     }
+
+    @Override
+    public void deleteTokens(String teamId, String[] tokens) {
+        if (teamId == null || tokens == null || tokens.length == 0) {
+            return;
+        }
+
+        for (String token: tokens) {
+            _userTokens.remove(String.format("%s_%s", teamId, token));
+        }
+    }
 }
