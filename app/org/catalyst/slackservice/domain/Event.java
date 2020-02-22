@@ -23,4 +23,9 @@ public class Event {
     public String channelType;
     @JsonProperty("thread_ts")
     public String threadTs;
+    public Tokens tokens;
+    public static class Tokens {
+        public String[] oauth;
+        public String[] bot;
+    }
 }

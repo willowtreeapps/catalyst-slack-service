@@ -6,4 +6,5 @@ public interface TokenHandler {
 
     void setBotInfo(String teamId, Bot bot);
     Bot getBotInfo(String teamId);
+    void deleteTokens(String teamId, String[] tokens);
 }
