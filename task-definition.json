@@ -43,22 +43,6 @@
           "name": "SLACK_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_ID",
-          "name": "BOT_ID"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_USERNAME",
-          "name": "BOT_USERNAME"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/APP_OAUTH_TOKEN",
-          "name": "APP_OAUTH_TOKEN"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_OAUTH_TOKEN",
-          "name": "BOT_OAUTH_TOKEN"
-        },
-        {
           "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_SIGNING_SECRET",
           "name": "SLACK_SIGNING_SECRET"
         },
