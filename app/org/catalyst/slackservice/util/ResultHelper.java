@@ -11,9 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 public class ResultHelper {
     public static CompletionStage<Result> badRequest(MessageHandler messages, String error) {
-        return CompletableFuture.completedFuture(Controller.badRequest( Json.toJson(Map.of(
-                "ok", Boolean.valueOf(false),
-                "error", messages.get(error)))));
+        return badRequest(messages.get(error));
     }
 
     public static CompletionStage<Result> badRequest(String error) {

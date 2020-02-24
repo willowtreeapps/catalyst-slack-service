@@ -46,17 +46,17 @@ public class AuthController extends Controller {
         var requestCode = httpRequest.queryString("code");
         var error = httpRequest.queryString("error");
 
-        if (requestCode.isEmpty() && error.isEmpty()) {
-            var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
-            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CODE);
-        }
-
         if (error.isPresent()) {
             var errorValue = error.get();
             if (ERROR_ACCESS_DENIED.equals(errorValue)) {
                 return CompletableFuture.completedFuture(found(_config.getLearnMoreUrl()));
             }
             return ResultHelper.badRequest(errorValue);
+        }
+
+        if (requestCode.isEmpty()) {
+            var messages = new MessageHandler(_messagesApi.preferred(httpRequest));
+            return ResultHelper.badRequest(messages, MessageHandler.MISSING_CODE);
         }
 
         // send a get request to Slack with the code to get token for authed user
