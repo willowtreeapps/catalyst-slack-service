@@ -1,11 +1,11 @@
 package org.catalyst.slackservice.controllers;
 
-import org.catalyst.slackservice.db.AnalyticsHandler;
-import org.catalyst.slackservice.db.AnalyticsKey;
-import org.catalyst.slackservice.db.TokenHandler;
-import org.catalyst.slackservice.db.TokenKey;
+import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Action;
 import org.catalyst.slackservice.domain.InteractiveMessage;
+import org.catalyst.slackservice.services.AnalyticsEvent;
+import org.catalyst.slackservice.services.AnalyticsKey;
+import org.catalyst.slackservice.services.AnalyticsService;
 import org.catalyst.slackservice.services.AppService;
 import org.catalyst.slackservice.util.*;
 import org.slf4j.Logger;
@@ -29,19 +29,19 @@ public class UserActionController extends Controller {
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
     private final TokenHandler _tokenDb;
-    private final AnalyticsHandler _analyticsDb;
+    private final AnalyticsService _analyticsService;
 
     private final static String PAYLOAD = "payload";
 
     @Inject
     public UserActionController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
-                                AppService slackService, TokenHandler tokenDb, AnalyticsHandler analyticsDb) {
+                                AppService slackService, TokenHandler tokenDb, AnalyticsService analyticsService) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._slackService = slackService;
         this._ec = ec;
         this._tokenDb = tokenDb;
-        this._analyticsDb = analyticsDb;
+        this._analyticsService = analyticsService;
     }
 
     @BodyParser.Of(BodyParser.Raw.class)
@@ -101,31 +101,22 @@ public class UserActionController extends Controller {
         }
 
         var action = iMessage.actions.stream().findFirst().get();
-
-        var dbKey = new AnalyticsKey();
-        dbKey.teamId = iMessage.team.id;
-        dbKey.channelId = iMessage.channel.id;
+        var key = new AnalyticsKey(_config.getTrackingId(), iMessage.channel.id, iMessage.user.id);
+        _analyticsService.track(AnalyticsEvent.createMessageActionEvent(key, action));
 
         var localeResult = _slackService.getConversationLocale(iMessage.channel.id, bot);
 
         return localeResult.thenComposeAsync(slackLocale -> {
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
-
             if (action.value.equals(Action.NO)) {
-                _analyticsDb.incrementIgnoredMessageCounts(dbKey);
-
                 return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(slackResponse -> noContent(), _ec.current());
             }
 
             if (action.value.equals(Action.LEARN_MORE)) {
-                _analyticsDb.incrementLearnMoreMessageCounts(dbKey);
-
                 return _slackService.postLearnMore(localizedMessages, iMessage, bot).thenApplyAsync(response -> noContent(), _ec.current());
             }
 
             if (action.value.equals(Action.YES)) {
-                _analyticsDb.incrementCorrectedMessageCounts(dbKey);
-
                 return handleReplaceMessage(iMessage);
             }
 

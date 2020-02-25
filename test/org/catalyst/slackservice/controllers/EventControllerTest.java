@@ -3,14 +3,13 @@ package org.catalyst.slackservice.controllers;
 import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
-import org.catalyst.slackservice.services.MockCorrector;
-import org.catalyst.slackservice.services.MockSlackService;
+import org.catalyst.slackservice.services.*;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MockConfig;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Json;
@@ -24,13 +23,15 @@ import static play.test.Helpers.*;
 public class EventControllerTest extends WithApplication {
     private static final String EVENTS_URI = "/bias-correct/v2/slack/events";
     private MockDbHandler mockDbHandler = new MockDbHandler();
+    private AnalyticsService mockAnalyticsService = Mockito.mock(AnalyticsService.class);
+
     @Override
     protected Application provideApplication() {
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(AnalyticsHandler.class).toInstance(mockDbHandler))
+                .overrides(bind(AnalyticsService.class).toInstance(mockAnalyticsService))
                 .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
                 .build();
     }
@@ -202,16 +203,22 @@ public class EventControllerTest extends WithApplication {
     @Test
     public void testNonBiasedMessage() {
         var eventRequest = getValidEventCallback();
-
         eventRequest.event.type = "message";
         eventRequest.event.text = "text";
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER123"), "");
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         var result = route(app, httpRequest);
+
         assertEquals(OK, result.status());
+        // TODO: determine what tests should validate analytics
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
+        Mockito.reset(mockAnalyticsService); // TODO: I dont think calling Mockito.reset is best practice
     }
 
     @Test

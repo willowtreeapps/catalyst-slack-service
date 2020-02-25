@@ -3,6 +3,7 @@ package org.catalyst.slackservice.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.catalyst.slackservice.services.AnalyticsKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -116,26 +117,6 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
             logger.debug("deleting tokens {}", Arrays.asList(newTokens));
             jedis.hdel( USER_TOKENS, newTokens);
         }
-    }
-
-    @Override
-    public void incrementMessageCounts(AnalyticsKey key) {
-        incrementCounts(key, "total");
-    }
-
-    @Override
-    public void incrementIgnoredMessageCounts(AnalyticsKey key) {
-        incrementCounts(key, "ignored");
-    }
-
-    @Override
-    public void incrementLearnMoreMessageCounts(AnalyticsKey key) {
-        incrementCounts(key, "learn_more");
-    }
-
-    @Override
-    public void incrementCorrectedMessageCounts(AnalyticsKey key) {
-        incrementCounts(key, "corrected");
     }
 
     private void incrementCounts(AnalyticsKey key, String prefix) {
