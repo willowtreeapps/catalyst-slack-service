@@ -26,7 +26,7 @@ libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.1" % "test"
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
 
-PlayKeys.devSettings := Seq("play.server.http.port" -> "4543")
+PlayKeys.devSettings := Seq("play.server.http.port" -> "4542")
 
 import com.typesafe.sbt.packager.docker._
 
