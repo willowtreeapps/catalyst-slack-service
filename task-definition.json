@@ -5,7 +5,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/catalyst-slack-taskdef-<environment>",
+          "awslogs-group": "/ecs/slack-<environment>",
           "awslogs-region": "<aws-region>",
           "awslogs-stream-prefix": "ecs"
         }
@@ -43,22 +43,6 @@
           "name": "SLACK_TOKEN"
         },
         {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_ID",
-          "name": "BOT_ID"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_USERNAME",
-          "name": "BOT_USERNAME"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/APP_OAUTH_TOKEN",
-          "name": "APP_OAUTH_TOKEN"
-        },
-        {
-          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/BOT_OAUTH_TOKEN",
-          "name": "BOT_OAUTH_TOKEN"
-        },
-        {
           "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_SIGNING_SECRET",
           "name": "SLACK_SIGNING_SECRET"
         },
@@ -77,11 +61,11 @@
       ],
       "memory": 512,
       "image": "<aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/catalyst-slack-service:latest",
-      "name": "slack-image"
+      "name": "slack"
     }
   ],
   "taskRoleArn": "arn:aws:iam::<aws-account-id>:role/ecsTaskExecutionRole",
-  "family": "catalyst-slack-taskdef-<environment>",
+  "family": "slack-task-definition-<environment>",
   "requiresCompatibilities": [
     "EC2"
   ]
