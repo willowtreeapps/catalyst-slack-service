@@ -3,17 +3,16 @@ package org.catalyst.slackservice.controllers;
 import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Action;
 import org.catalyst.slackservice.domain.InteractiveMessage;
+import org.catalyst.slackservice.services.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Json;
 import play.mvc.Http;
 import play.test.WithApplication;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
-import org.catalyst.slackservice.services.MockCorrector;
-import org.catalyst.slackservice.services.MockSlackService;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MockConfig;
 
@@ -30,12 +29,16 @@ public class UserActionControllerTest extends WithApplication {
 
     private static final String URI = "/bias-correct/v2/slack/actions";
     private MockDbHandler mockDbHandler = new MockDbHandler();
+    private AnalyticsService mockAnalyticsService;
+
     @Override
     protected Application provideApplication() {
+        mockAnalyticsService = Mockito.mock(AnalyticsService.class);
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
+                .overrides(bind(AnalyticsService.class).toInstance(mockAnalyticsService))
                 .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
                 .build();
     }
@@ -175,12 +178,21 @@ public class UserActionControllerTest extends WithApplication {
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);
 
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
+                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new Action("Ignore", "Ignore", "no", "", "")
+        );
+
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test
@@ -216,12 +228,21 @@ public class UserActionControllerTest extends WithApplication {
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);
 
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
+                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new Action("Learn More", "Learn More", "learn_more", "", "")
+        );
+
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test
@@ -239,16 +260,26 @@ public class UserActionControllerTest extends WithApplication {
         var payload = new String[]{Json.toJson(interactiveMessage).toString()};
         requestBody.put("payload", payload);
 
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
+                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new Action("Bias Correct", "Bias Correct", "yes", "", "")
+        );
+
         var request = new Http.RequestBuilder()
                 .method(POST)
                 .uri(URI).bodyFormArrayValues(requestBody);
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test
     public void testBiasCorrectEmptyCorrectionAction() {
+        // TODO: this test seems the same as bias correct action
         var requestBody = new HashMap<String, String[]>();
 
         var action = new Action();
@@ -289,6 +320,8 @@ public class UserActionControllerTest extends WithApplication {
 
         var result = route(app, request);
         assertEquals(NO_CONTENT, result.status());
+        Mockito.verify(mockAnalyticsService, Mockito.times(0))
+                .track(ArgumentCaptor.forClass(AnalyticsEvent.class).capture());
     }
 
     private static InteractiveMessage getValidInteractiveMessage() {

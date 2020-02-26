@@ -102,7 +102,14 @@ public class UserActionController extends Controller {
 
         var action = iMessage.actions.stream().findFirst().get();
         var key = new AnalyticsKey(_config.getTrackingId(), iMessage.channel.id, iMessage.user.id);
-        _analyticsService.track(AnalyticsEvent.createMessageActionEvent(key, action));
+
+        try {
+            var event = AnalyticsEvent.createMessageActionEvent(key, action);
+            _analyticsService.track(event);
+        }
+        catch (Exception e) {
+            // TODO: log
+        }
 
         var localeResult = _slackService.getConversationLocale(iMessage.channel.id, bot);
 

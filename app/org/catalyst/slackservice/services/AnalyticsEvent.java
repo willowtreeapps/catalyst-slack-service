@@ -44,7 +44,7 @@ public class AnalyticsEvent {
         return new AnalyticsEvent(key, action, "");
     }
 
-    public static AnalyticsEvent createMessageActionEvent(AnalyticsKey key, Action action) {
+    public static AnalyticsEvent createMessageActionEvent(AnalyticsKey key, Action action) throws IllegalArgumentException {
         String analyticsAction = "";
         if (action.value.equals(Action.YES)) {
             analyticsAction = "User - Applied Suggestion";
@@ -54,6 +54,9 @@ public class AnalyticsEvent {
         }
         else if (action.value.equals(Action.LEARN_MORE)) {
             analyticsAction = "User - Clicked Learn More";
+        }
+        else {
+            throw new IllegalArgumentException();
         }
 
         return new AnalyticsEvent(key, analyticsAction, "");
