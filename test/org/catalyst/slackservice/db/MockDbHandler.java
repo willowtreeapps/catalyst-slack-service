@@ -2,7 +2,6 @@ package org.catalyst.slackservice.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.catalyst.slackservice.services.AnalyticsKey;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
