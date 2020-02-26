@@ -37,7 +37,6 @@ public class UserActionControllerTest extends WithApplication {
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
                 .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
-                .overrides(bind(AnalyticsHandler.class).toInstance(mockDbHandler))
                 .build();
     }
 

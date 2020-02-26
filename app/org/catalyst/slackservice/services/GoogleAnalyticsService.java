@@ -5,10 +5,12 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import play.libs.ws.WSClient;
+import play.libs.ws.WSResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.concurrent.CompletionStage;
 
 public class GoogleAnalyticsService implements AnalyticsService {
 
@@ -19,19 +21,17 @@ public class GoogleAnalyticsService implements AnalyticsService {
       _wsClient = wsClient;
    }
 
-   public void track(AnalyticsEvent event) {
+   public CompletionStage<WSResponse> track(AnalyticsEvent event) {
       try {
          var uri = getURI(event);
-         System.out.println(uri.toString());
-         var request = _wsClient.url(uri.toString())
-                 .setContentType("application/json");
-
-         // TODO: make async
-          var response = request.post("");
+         var request = _wsClient.url(uri.toString());
+         return request.post("");
       }
       catch(Exception e) {
           // TODO: handle exceptions
       }
+
+      return null;
    }
 
    private URI getURI(AnalyticsEvent event) throws URISyntaxException {

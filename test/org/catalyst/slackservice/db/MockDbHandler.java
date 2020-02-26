@@ -7,7 +7,7 @@ import org.catalyst.slackservice.services.AnalyticsKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MockDbHandler implements TokenHandler, AnalyticsHandler {
+public class MockDbHandler implements TokenHandler {
     private Map<String, String> _channelMessages = new ConcurrentHashMap<>();
     private Map<String, String> _userTokens = new ConcurrentHashMap<>();
     private Map<String, String> _botTokens = new ConcurrentHashMap<>();
@@ -21,10 +21,6 @@ public class MockDbHandler implements TokenHandler, AnalyticsHandler {
     @Override
     public String getUserToken(TokenKey key) {
         return _userTokens.get(String.format("%s_%s", key.teamId, key.userId));
-    }
-
-    @Override
-    public void setTeamName(String teamId, String teamName) {
     }
 
     @Override

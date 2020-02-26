@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
-public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
+public class RedisDbHandler implements TokenHandler {
     final Logger logger = LoggerFactory.getLogger(RedisDbHandler.class);
 
     private JedisPool _jedisPool;
@@ -56,18 +56,6 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
 
         logger.debug("token for {} {} {}", key.teamId, key.userId, ((userToken == null) ? "not found" : "found"));
         return userToken;
-    }
-
-    @Override
-    public void setTeamName(String teamId, String teamName) {
-        if (teamId == null || teamName == null) {
-            logger.error("set team name failed. teamId: {}, teamName: {}", teamId, teamName);
-            return;
-        }
-
-        try (Jedis jedis = _jedisPool.getResource()) {
-            jedis.hset( TEAM_NAMES, teamId, teamName);
-        }
     }
 
     @Override
@@ -117,27 +105,6 @@ public class RedisDbHandler implements TokenHandler, AnalyticsHandler {
             logger.debug("deleting tokens {}", Arrays.asList(newTokens));
             jedis.hdel( USER_TOKENS, newTokens);
         }
-    }
-
-    private void incrementCounts(AnalyticsKey key, String prefix) {
-        if (key == null || key.teamId == null || key.channelId == null) {
-            logger.error("increment {} counts failed. teamId: {}, channelId: {}", prefix, key.teamId, key.channelId);
-            return;
-        }
-        var dayKey = today();
-        try (Jedis jedis = _jedisPool.getResource()) {
-            jedis.hincrBy( format(prefix, "team_messages"), key.teamId,1L );
-            jedis.hincrBy( format(prefix, "channel_messages"), format(key.teamId, key.channelId),1L );
-            jedis.hincrBy( format(prefix, "team_daily_messages"), format(key.teamId, dayKey), 1L );
-            jedis.hincrBy( format(prefix, "channel_daily_messages"), String.format("%s_%s_%s", key.teamId, key.channelId, dayKey), 1L );
-            jedis.hincrBy( format(prefix, "daily_messages"), format(key.teamId, dayKey), 1L );
-            jedis.incrBy( format(prefix, "messages"), 1L );
-        }
-    }
-
-    private static String today() {
-        LocalDate localDate = LocalDate.now(ET);
-        return localDate.format(DATE_FORMATTER);
     }
 
     private static String format(String v1, String v2) {
