@@ -129,4 +129,17 @@ public class ApiTest {
         assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
         assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("")));
     }
+
+    @Test
+    public void testMultiWordPronoun() {
+        MessagePayload payload = new MessagePayload.MessagePayloadBuilder()
+                .setText("sie ist theatralisch")
+                .setContext("de")
+                .build();
+
+        ResponseEntity<MessageResponse> messageResponse = Correct.postCorrect(payload);
+
+        assertThat(messageResponse.getStatusCode(), is(HttpStatus.OK));
+        assertThat(messageResponse.getBody().getCorrection(), containsString(String.valueOf("sie ist passioniert")));
+    }
 }
