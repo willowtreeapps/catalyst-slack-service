@@ -1,16 +1,14 @@
-name: Build and Deploy to Dev
+name: Deploy to Production
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
-      - develop
+      - master
 
 jobs:
   deploy:
-    name: Dev Deployment
+    name: Prod Deployment
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged
 
     steps:
       - name: Checkout
@@ -30,14 +28,14 @@ jobs:
       - name: Run api tests
         run: sbt "testOnly **biascorrectservice.api*"
         env:
-          BIAS_CORRECT_URL: ${{ secrets.BIAS_CORRECT_URL }}
+          BIAS_CORRECT_URL: ${{ secrets.PROD_BIAS_CORRECT_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.PROD_AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -48,6 +46,7 @@ jobs:
         uses: einaregilsson/build-number@v2
         with:
           token: ${{secrets.github_token}}
+          prefix: prod
 
       - name: Print generated build number
         run: echo Build number is $BUILD_NUMBER
@@ -55,7 +54,7 @@ jobs:
       - name: Build and publish docker image
         id: build-image
         env:
-          DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
+          DOCKER_REPOSITORY: ${{ secrets.PROD_DOCKER_REPOSITORY }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           VERSION_NUMBER: ${{ steps.buildnumber.outputs.build_number }}
         run: |
@@ -65,8 +64,8 @@ jobs:
       - name: Initialize task definition
         id: task-def-init
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_ENVIRONMENT: dev
+          AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
+          AWS_ENVIRONMENT: prod
         run: |
           sh ./scripts/init_task_definition.sh
 
@@ -82,7 +81,7 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ secrets.SERVICE_NAME }}
-          cluster: ${{ secrets.CLUSTER_NAME }}
+          service: ${{ secrets.PROD_SERVICE_NAME }}
+          cluster: ${{ secrets.PROD_CLUSTER_NAME }}
           #currently taking approx 6 mins to check stability
           wait-for-service-stability: true
