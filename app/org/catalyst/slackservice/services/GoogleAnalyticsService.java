@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 
@@ -13,7 +15,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletionStage;
 
 public class GoogleAnalyticsService implements AnalyticsService {
-
+   private final Logger logger = LoggerFactory.getLogger(GoogleAnalyticsService.class);
    private final WSClient _wsClient;
 
    @Inject
@@ -21,17 +23,15 @@ public class GoogleAnalyticsService implements AnalyticsService {
       _wsClient = wsClient;
    }
 
-   public CompletionStage<WSResponse> track(AnalyticsEvent event) {
+   public void track(AnalyticsEvent event) {
       try {
          var uri = getURI(event);
          var request = _wsClient.url(uri.toString());
-         return request.post("");
+         request.post("");
       }
       catch(Exception e) {
-          // TODO: handle exceptions
+          logger.error("failed to send google analytics event");
       }
-
-      return null;
    }
 
    private URI getURI(AnalyticsEvent event) throws URISyntaxException {

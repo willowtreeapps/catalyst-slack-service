@@ -118,4 +118,25 @@ public class AnalyticsEventTest {
 
         Assert.assertEquals(expected, result);
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidCreateMessageActionEvent() {
+        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var action = new Action(); // specify no value
+
+        var expected = new HashMap<String, String>() {{
+            put("v", "1");
+            put("t", "event");
+            put("tid", "trackingId");
+            put("cid", "userId");
+            put("ec", "channelId");
+            put("ea", "User - Clicked Learn More");
+            put("el", "");
+        }};
+
+        var result = AnalyticsEvent.createMessageActionEvent(key, action);
+
+        // should never reach this statement because createMessageAction should throw an exception
+        Assert.assertEquals(true, false);
+    }
 }

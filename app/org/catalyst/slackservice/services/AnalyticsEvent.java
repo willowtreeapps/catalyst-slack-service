@@ -46,13 +46,13 @@ public class AnalyticsEvent {
 
     public static AnalyticsEvent createMessageActionEvent(AnalyticsKey key, Action action) throws IllegalArgumentException {
         String analyticsAction = "";
-        if (action.value.equals(Action.YES)) {
+        if (action.value != null && action.value.equals(Action.YES)) {
             analyticsAction = "User - Applied Suggestion";
         }
-        else if (action.value.equals(Action.NO)) {
+        else if (action.value != null && action.value.equals(Action.NO)) {
             analyticsAction = "User - Rejected Suggestion";
         }
-        else if (action.value.equals(Action.LEARN_MORE)) {
+        else if (action.value != null && action.value.equals(Action.LEARN_MORE)) {
             analyticsAction = "User - Clicked Learn More";
         }
         else {

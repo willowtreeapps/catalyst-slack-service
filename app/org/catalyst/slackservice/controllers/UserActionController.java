@@ -108,7 +108,7 @@ public class UserActionController extends Controller {
             _analyticsService.track(event);
         }
         catch (Exception e) {
-            // TODO: log
+            logger.error("failed to track user action analytics event {}", action);
         }
 
         var localeResult = _slackService.getConversationLocale(iMessage.channel.id, bot);

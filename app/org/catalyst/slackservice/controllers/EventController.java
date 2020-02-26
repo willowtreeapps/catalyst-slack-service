@@ -190,7 +190,7 @@ public class EventController extends Controller {
         var key = new AnalyticsKey(_config.getTrackingId(), event.channel, event.user);
         var correctorResult = _biasCorrector.getCorrection(event.text, messages.slackLocale);
         return correctorResult.thenComposeAsync(correction -> {
-            _analyticsService.track(AnalyticsEvent.createMessageEvent(key, correction)); // TODO: does this need to be part of a thenCompose?
+            _analyticsService.track(AnalyticsEvent.createMessageEvent(key, correction));
             if (correction.isEmpty()) {
                 return ResultHelper.ok();
             }
