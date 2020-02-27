@@ -16,7 +16,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testBiasMatchCreateMessageEvent() {
-        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("fr-FR"));;
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("fr-FR"));;
         var trigger = "trigger";
 
         var expected = new HashMap<String, String>() {{
