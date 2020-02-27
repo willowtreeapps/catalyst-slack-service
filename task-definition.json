@@ -57,6 +57,10 @@
         {
           "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/SLACK_CLIENT_SECRET",
           "name": "SLACK_CLIENT_SECRET"
+        },
+        {
+          "valueFrom": "arn:aws:ssm:<aws-region>:<aws-account-id>:parameter/catalyst/<environment>/TRACKING_ID",
+          "name": "TRACKING_ID"
         }
       ],
       "memory": 512,
