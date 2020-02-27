@@ -79,7 +79,10 @@ public class AuthControllerTest extends WithApplication {
         tokenKey.teamId = "TEAM234";
         tokenKey.userId = "USER123";
 
-        assertEquals("xoxb-token-234", dbManager.getBotInfo("TEAM234").token);
+        var botInfo = dbManager.getBotInfo("TEAM234");
+        assertEquals("xoxb-token-234", botInfo.token);
+        assertEquals("BOT123", botInfo.userId);
+        assertEquals("team-234", botInfo.teamName);
         assertEquals("xoxp-token-123", dbManager.getUserToken(tokenKey));
         assertEquals(FOUND, result.status());
     }

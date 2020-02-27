@@ -70,10 +70,8 @@ public class AuthController extends Controller {
                         "error", response.error))));
             }
 
-            if (BOT_TOKEN_TYPE.equals(response.tokenType) && response.botUserId != null && response.accessToken != null) {
-                var bot = new Bot();
-                bot.token = response.accessToken;
-                bot.userId = response.botUserId;
+            if (BOT_TOKEN_TYPE.equals(response.tokenType) && response.botUserId != null && response.accessToken != null && response.team != null) {
+                var bot = new Bot(response.accessToken, response.botUserId, response.team.name);
                 _tokenDb.setBotInfo(teamId, bot);
             }
 

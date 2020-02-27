@@ -1,6 +1,7 @@
 package org.catalyst.slackservice.services;
 
 import org.catalyst.slackservice.domain.Action;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
@@ -15,7 +16,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testBiasMatchCreateMessageEvent() {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("fr-FR"));;
         var trigger = "trigger";
 
         var expected = new HashMap<String, String>() {{
@@ -26,6 +27,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "Message - Bias Match");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "fr-FR");
         }};
 
         var result = AnalyticsEvent.createMessageEvent(key, trigger).getMap();
@@ -39,7 +45,7 @@ public class AnalyticsEventTest {
     @Test
     @Theory
     public void testNoActionCreateMessageEvent(String trigger) {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
 
         var expected = new HashMap<String, String>() {{
             put("v", "1");
@@ -49,6 +55,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "Message - No Action");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "en-US");
         }};
 
         var result = AnalyticsEvent.createMessageEvent(key, trigger).getMap();
@@ -58,7 +69,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testYesCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("fr-FR"));
         var action = new Action();
         action.value = Action.YES.toString();
 
@@ -70,6 +81,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "User - Applied Suggestion");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "fr-FR");
         }};
 
         var result = AnalyticsEvent.createMessageActionEvent(key, action).getMap();
@@ -79,7 +95,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testNoCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");;
+        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
         var action = new Action();
         action.value = Action.NO.toString();
 
@@ -91,6 +107,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "User - Rejected Suggestion");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "en-US");
         }};
 
         var result = AnalyticsEvent.createMessageActionEvent(key, action).getMap();
@@ -100,7 +121,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testLearnMoreCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
         var action = new Action();
         action.value = Action.LEARN_MORE.toString();
 
@@ -112,6 +133,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "User - Clicked Learn More");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "en-US");
         }};
 
         var result = AnalyticsEvent.createMessageActionEvent(key, action).getMap();
@@ -121,7 +147,7 @@ public class AnalyticsEventTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId", "teamId", "TeamName","channelId", "userId", new SlackLocale("en-US"));
         var action = new Action(); // specify no value
 
         var expected = new HashMap<String, String>() {{
@@ -132,6 +158,11 @@ public class AnalyticsEventTest {
             put("ec", "channelId");
             put("ea", "User - Clicked Learn More");
             put("el", "");
+            put("cd1", "teamName");
+            put("cd2", "teamId");
+            put("cd3", "channelId");
+            put("cd4", "userId");
+            put("cd5", "en-US");
         }};
 
         var result = AnalyticsEvent.createMessageActionEvent(key, action);

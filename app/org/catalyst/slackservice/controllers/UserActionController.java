@@ -101,19 +101,18 @@ public class UserActionController extends Controller {
         }
 
         var action = iMessage.actions.stream().findFirst().get();
-        var key = new AnalyticsKey(_config.getTrackingId(), iMessage.channel.id, iMessage.user.id);
-
-        try {
-            var event = AnalyticsEvent.createMessageActionEvent(key, action);
-            _analyticsService.track(event);
-        }
-        catch (Exception e) {
-            logger.error("failed to track user action analytics event {}", action);
-        }
-
         var localeResult = _slackService.getConversationLocale(iMessage.channel.id, bot);
 
         return localeResult.thenComposeAsync(slackLocale -> {
+            var key = new AnalyticsKey(_config.getTrackingId(), iMessage.team.id, bot.teamName, iMessage.channel.id, iMessage.user.id, slackLocale);
+            try {
+                var event = AnalyticsEvent.createMessageActionEvent(key, action);
+                _analyticsService.track(event);
+            }
+            catch (Exception e) {
+                logger.error("failed to track user action analytics event {}", action);
+            }
+
             var localizedMessages = new MessageHandler(_messagesApi, slackLocale);
             if (action.value.equals(Action.NO)) {
                 return _slackService.deleteMessage(iMessage.responseUrl).thenApplyAsync(slackResponse -> noContent(), _ec.current());

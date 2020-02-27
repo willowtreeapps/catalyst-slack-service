@@ -187,7 +187,7 @@ public class EventController extends Controller {
     }
 
     private CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event, final Bot bot) {
-        var key = new AnalyticsKey(_config.getTrackingId(), event.channel, event.user);
+        var key = new AnalyticsKey(_config.getTrackingId(), event.team, bot.teamName, event.channel, event.user, messages.slackLocale);
         var correctorResult = _biasCorrector.getCorrection(event.text, messages.slackLocale);
         return correctorResult.thenComposeAsync(correction -> {
             _analyticsService.track(AnalyticsEvent.createMessageEvent(key, correction));
