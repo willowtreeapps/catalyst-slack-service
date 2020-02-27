@@ -3,14 +3,12 @@ package org.catalyst.slackservice.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.catalyst.slackservice.services.AnalyticsKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import javax.inject.Inject;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -60,7 +58,7 @@ public class RedisDbHandler implements TokenHandler {
 
     @Override
     public void setBotInfo(String teamId, Bot bot) {
-        if (teamId == null || bot.userId == null || bot.token == null) {
+        if (teamId == null || bot.userId == null || bot.token == null || bot.teamName == null) {
             logger.error("set bot token failed. teamId: {}, botName: {}, token null ? {}", teamId, bot.userId, (bot.token == null));
             return;
         }

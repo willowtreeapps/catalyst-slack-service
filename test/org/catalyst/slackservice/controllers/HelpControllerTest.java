@@ -29,9 +29,7 @@ public class HelpControllerTest extends WithApplication {
 
     @Before
     public void setup() {
-        Bot bot = new Bot();
-        bot.token = "xoxb-2345";
-        bot.userId = "BOT123";
+        Bot bot = new Bot("xoxb-2345", "BOT123", "test");
         mockDbHandler.setBotInfo("TEAM123", bot);
     }
 

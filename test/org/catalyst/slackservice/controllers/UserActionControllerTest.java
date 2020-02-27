@@ -4,6 +4,7 @@ import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Action;
 import org.catalyst.slackservice.domain.InteractiveMessage;
 import org.catalyst.slackservice.services.*;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -45,9 +46,7 @@ public class UserActionControllerTest extends WithApplication {
 
     @Before
     public void setup() {
-        Bot bot = new Bot();
-        bot.token = "xoxb-2345";
-        bot.userId = "BOT123";
+        Bot bot = new Bot("xoxb-2345", "BOT123", "team-123");
         mockDbHandler.setBotInfo("TEAM123", bot);
     }
 
@@ -179,7 +178,7 @@ public class UserActionControllerTest extends WithApplication {
         requestBody.put("payload", payload);
 
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
-                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "CHANNEL123", "USER123", new SlackLocale("en")),
                 new Action("Ignore", "Ignore", "no", "", "")
         );
 
@@ -229,7 +228,7 @@ public class UserActionControllerTest extends WithApplication {
         requestBody.put("payload", payload);
 
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
-                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "CHANNEL123", "USER123", new SlackLocale("en")),
                 new Action("Learn More", "Learn More", "learn_more", "", "")
         );
 
@@ -261,7 +260,7 @@ public class UserActionControllerTest extends WithApplication {
         requestBody.put("payload", payload);
 
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageActionEvent(
-                new AnalyticsKey("UA-XXXX-Y", "CHANNEL123", "USER123"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "CHANNEL123", "USER123", new SlackLocale("en")),
                 new Action("Bias Correct", "Bias Correct", "yes", "", "")
         );
 
