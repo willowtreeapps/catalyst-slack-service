@@ -106,7 +106,6 @@ public class EventController extends Controller {
         }
 
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), eventRequest.token)) {
-            logger.error("Request not verified");
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
@@ -229,7 +228,7 @@ public class EventController extends Controller {
     private Result handleSlackResponse(Event event, SlackResponse slackResponse, String errorMessage) {
         var json = Json.toJson(slackResponse);
         if (!slackResponse.ok) {
-            logger.error("{}. teamId: {}, userId: {}, response: {}", errorMessage,  event.team, event.user, json);
+            logger.error("{}. teamId: {}, userId: {}", errorMessage,  event.team, event.user);
             return badRequest(json);
         }
         return ok(json);

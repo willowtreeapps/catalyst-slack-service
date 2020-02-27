@@ -9,18 +9,13 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import javax.inject.Inject;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 public class RedisDbHandler implements TokenHandler {
     final Logger logger = LoggerFactory.getLogger(RedisDbHandler.class);
 
     private JedisPool _jedisPool;
-    private static final ZoneId ET = ZoneId.of("America/New_York");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String USER_TOKENS = "user_tokens";
-    private static final String TEAM_NAMES = "team_names";
     private static final String BOT_TOKENS = "bot_tokens";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -38,6 +33,8 @@ public class RedisDbHandler implements TokenHandler {
 
         try (Jedis jedis = _jedisPool.getResource()) {
             jedis.hset( USER_TOKENS, format(key.teamId, key.userId), token);
+        } catch(Exception e) {
+            logger.error("error while setting user token for {} {}, {}", key.teamId, key.userId, e.getMessage());
         }
     }
 
@@ -52,7 +49,10 @@ public class RedisDbHandler implements TokenHandler {
             userToken = jedis.hget( USER_TOKENS, format(key.teamId, key.userId) );
         }
 
-        logger.debug("token for {} {} {}", key.teamId, key.userId, ((userToken == null) ? "not found" : "found"));
+        if (userToken == null) {
+            logger.error("token for {} {} not found", key.teamId, key.userId);
+        }
+
         return userToken;
     }
 
@@ -86,7 +86,10 @@ public class RedisDbHandler implements TokenHandler {
             logger.error("unable to process bot info for team {} {}", teamId, e.getMessage());
         }
 
-        logger.debug("bot info for {} {}", teamId, ((bot == null) ? "not found" : "found"));
+        if (bot == null) {
+            logger.error("bot info for {} not found", teamId);
+        }
+
         return bot;
     }
 
@@ -102,6 +105,8 @@ public class RedisDbHandler implements TokenHandler {
         try (Jedis jedis = _jedisPool.getResource()) {
             logger.debug("deleting tokens {}", Arrays.asList(newTokens));
             jedis.hdel( USER_TOKENS, newTokens);
+        } catch (Exception e) {
+            logger.error("error deleting tokens {}", e.getMessage());
         }
     }
 
