@@ -7,7 +7,6 @@ import org.catalyst.slackservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.i18n.MessagesApi;
-import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -55,7 +54,6 @@ public class HelpController extends Controller {
         var token = PayloadHelper.getMapValue(body, TOKEN);
 
         if (!RequestVerifier.verified(httpRequest, _config.getSigningSecret(), _config.getToken(), token)) {
-            logger.error("request not verified");
             return ResultHelper.badRequest(messages, MessageHandler.REQUEST_NOT_VERIFIED);
         }
 
@@ -99,9 +97,8 @@ public class HelpController extends Controller {
 
             var postResult = _slackService.postCustomMessage(_config.getPostEphemeralUrl(), message, bot);
             return postResult.thenApplyAsync(slackResponse -> {
-                var json = Json.toJson(slackResponse);
                 if (!slackResponse.ok) {
-                    logger.error("help response failed. channel: {} response: {}", channel, json);
+                    logger.error("help response failed. channel: {}", channel);
                 }
                 return noContent();
             });

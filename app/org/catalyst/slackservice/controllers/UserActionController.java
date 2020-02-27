@@ -141,7 +141,7 @@ public class UserActionController extends Controller {
 
         return replacementResult.thenComposeAsync(replacementResponse -> {
             if (!replacementResponse.ok) {
-                logger.error("unable to replace message: {}", Json.toJson(replacementResponse));
+                logger.error("unable to replace message for {} {}", tokenKey.teamId, tokenKey.userId);
                 return ResultHelper.noContent();
             }
 

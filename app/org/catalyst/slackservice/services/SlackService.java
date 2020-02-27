@@ -52,8 +52,12 @@ public class SlackService implements AppService, WSBodyReadables {
 
         return jsonPromise.thenApplyAsync(r -> {
             var response = r.getBody(json());
-            logger.debug("\nposting to slack {} --> {}\nresponse --> {}", url, jsonReply, response);
-            return Json.fromJson(response, SlackResponse.class);
+            logger.debug("\nposting to slack {} --> {}", url, jsonReply);
+            var slackResponse = Json.fromJson(response, SlackResponse.class);
+            if (!slackResponse.ok) {
+                logger.error("slack response --> {}", response);
+            }
+            return slackResponse;
         }, _ec.current());
     }
 
@@ -152,7 +156,7 @@ public class SlackService implements AppService, WSBodyReadables {
         var jsonPromise = request.get();
         return jsonPromise.thenApplyAsync(r -> {
             if (r.getStatus() != 200 ) {
-                logger.error("failed to retrieve user locale. {}", r.getStatus());
+                logger.error("failed to retrieve user locale. status code {}", r.getStatus());
                 return new SlackLocale();
             }
 
