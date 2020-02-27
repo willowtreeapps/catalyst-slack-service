@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 public class GoogleAnalyticsService implements AnalyticsService {
+   private static final String USER_AGENT = "CatalystBiasCorrectService/1.0.1";
    private final Logger logger = LoggerFactory.getLogger(GoogleAnalyticsService.class);
    private final WSClient _wsClient;
 
@@ -24,7 +25,7 @@ public class GoogleAnalyticsService implements AnalyticsService {
       try {
          var uri = getURI();
          var request = _wsClient.url(uri.toString())
-                 .addHeader("User-Agent", "CatalystBiasCorrectService/1.0.1");
+                 .addHeader("User-Agent", USER_AGENT);
          request = addQueryParameters(request, event.getMap()); // addQueryParameters will url encode the values
          request.post("");
       }

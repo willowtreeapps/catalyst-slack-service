@@ -6,6 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnalyticsEvent {
+    private static final String MESSAGE_BIAS_MATCH = "Message - Bias Match";
+    private static final String MESSAGE_NO_ACTION = "Message - No Action";
+    private static final String USER_APPLIED_SUGGESTION = "User - Applied Suggestion";
+    private static final String USER_REJECTED_SUGGESTION = "User - Rejected Suggestion";
+    private static final String USER_CLICKED_LEARN_MORE = "User - Clicked Learn More";
     private static final String version = "1";
     private static final String type = "event";
     private String trackingId;
@@ -39,20 +44,20 @@ public class AnalyticsEvent {
     }
 
     public static AnalyticsEvent createMessageEvent(AnalyticsKey key, String correction)  {
-        var action = correction != null && correction.length() > 0 ? "Message - Bias Match" : "Message - No Action";
+        var action = correction != null && correction.length() > 0 ? MESSAGE_BIAS_MATCH : MESSAGE_NO_ACTION;
         return new AnalyticsEvent(key, action, "");
     }
 
     public static AnalyticsEvent createMessageActionEvent(AnalyticsKey key, Action action) throws IllegalArgumentException {
         String analyticsAction = "";
         if (action.value != null && action.value.equals(Action.YES)) {
-            analyticsAction = "User - Applied Suggestion";
+            analyticsAction = USER_APPLIED_SUGGESTION;
         }
         else if (action.value != null && action.value.equals(Action.NO)) {
-            analyticsAction = "User - Rejected Suggestion";
+            analyticsAction = USER_REJECTED_SUGGESTION;
         }
         else if (action.value != null && action.value.equals(Action.LEARN_MORE)) {
-            analyticsAction = "User - Clicked Learn More";
+            analyticsAction = USER_CLICKED_LEARN_MORE;
         }
         else {
             throw new IllegalArgumentException();
