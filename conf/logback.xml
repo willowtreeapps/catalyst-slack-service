@@ -21,25 +21,4 @@
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
-  <!-- TODO remove these before release BGC-83 -->
-  <logger name="org.catalyst.slackservice.controllers.EventController" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <logger name="org.catalyst.slackservice.controllers.UserActionController" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <logger name="org.catalyst.slackservice.controllers.HelpController" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <logger name="org.catalyst.slackservice.db.RedisDbHandler" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <logger name="org.catalyst.slackservice.services.SlackService" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <logger name="org.catalyst.slackservice.util.RequestVerifier" level="DEBUG" >
-    <appender-ref ref="ASYNCSTDOUT"/>
-  </logger>
-  <!-- end of log settings to be removed -->
-
 </configuration>

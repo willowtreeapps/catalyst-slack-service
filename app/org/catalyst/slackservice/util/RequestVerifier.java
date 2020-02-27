@@ -49,15 +49,20 @@ public class RequestVerifier {
             LoggerFactory.getLogger(RequestVerifier.class).error(e.getMessage());
         }
         var hashVerified = hash.equals(slackSignature.get());
-        LoggerFactory.getLogger(RequestVerifier.class).debug("hash verified ? {} hash: {} slacksignature: {} timestamp: {}", hashVerified, hash, slackSignature.get(), timestamp.get(), signingSecret);
         return hashVerified;
     }
 
     public static boolean verified(Http.Request httpRequest, String configSigningSecret, String configToken, String token) {
         var headersExist = headersExist(httpRequest);
 
-        return
+        var verified =
             (headersExist && hashVerified(configSigningSecret, httpRequest)) ||
             (!headersExist && configToken.equals(token));
+
+        if (!verified) {
+            LoggerFactory.getLogger(RequestVerifier.class).debug("request not verified. headers exist? {} ", headersExist);
+        }
+
+        return verified;
     }
 }
