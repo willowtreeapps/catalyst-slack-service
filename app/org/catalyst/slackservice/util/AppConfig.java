@@ -16,4 +16,5 @@ public interface AppConfig {
     String getUpdateUrl();
     String getAuthorizedUrl();
     String getConversationsInfoUrl();
+    String getTrackingId();
 }

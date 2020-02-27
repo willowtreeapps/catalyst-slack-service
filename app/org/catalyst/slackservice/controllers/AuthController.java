@@ -1,6 +1,5 @@
 package org.catalyst.slackservice.controllers;
 
-import org.catalyst.slackservice.db.AnalyticsHandler;
 import org.catalyst.slackservice.db.Bot;
 import org.catalyst.slackservice.db.TokenHandler;
 import org.catalyst.slackservice.db.TokenKey;
@@ -26,17 +25,15 @@ public class AuthController extends Controller {
     private final AppConfig _config;
     private final MessagesApi _messagesApi;
     private final TokenHandler _tokenDb;
-    private final AnalyticsHandler _analyticsDb;
     private static final String BOT_TOKEN_TYPE = "bot";
     private static final String ERROR_ACCESS_DENIED = "access_denied";
 
     @Inject
-    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db, AnalyticsHandler analyticsDb) {
+    public AuthController(AppService service, AppConfig config, MessagesApi messagesApi, TokenHandler db) {
         this._service = service;
         this._config = config;
         this._messagesApi = messagesApi;
         this._tokenDb = db;
-        this._analyticsDb = analyticsDb;
     }
 
     /**
@@ -71,11 +68,6 @@ public class AuthController extends Controller {
                 return CompletableFuture.completedFuture(badRequest(Json.toJson(Map.of(
                         "ok", response.ok,
                         "error", response.error))));
-            }
-
-            var teamName = response.team != null ? response.team.name : null;
-            if (teamName != null) {
-                _analyticsDb.setTeamName(teamId, teamName);
             }
 
             if (BOT_TOKEN_TYPE.equals(response.tokenType) && response.botUserId != null && response.accessToken != null) {

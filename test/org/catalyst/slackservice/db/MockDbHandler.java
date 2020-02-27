@@ -6,33 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MockDbHandler implements TokenHandler, AnalyticsHandler {
+public class MockDbHandler implements TokenHandler {
     private Map<String, String> _channelMessages = new ConcurrentHashMap<>();
     private Map<String, String> _userTokens = new ConcurrentHashMap<>();
     private Map<String, String> _botTokens = new ConcurrentHashMap<>();
-
-    @Override
-    public void incrementMessageCounts(AnalyticsKey key) {
-        var formattedKey = String.format("%s_%s", key.teamId, key.channelId);
-        var value = _channelMessages.get(formattedKey);
-        var intValue = value == null ? 1 : Integer.valueOf(value).intValue() + 1;
-        _channelMessages.put(formattedKey, String.valueOf(intValue));
-    }
-
-    @Override
-    public void incrementIgnoredMessageCounts(AnalyticsKey key) {
-
-    }
-
-    @Override
-    public void incrementLearnMoreMessageCounts(AnalyticsKey key) {
-
-    }
-
-    @Override
-    public void incrementCorrectedMessageCounts(AnalyticsKey key) {
-
-    }
 
     @Override
     public void setUserToken(TokenKey key, String token) {
@@ -43,10 +20,6 @@ public class MockDbHandler implements TokenHandler, AnalyticsHandler {
     @Override
     public String getUserToken(TokenKey key) {
         return _userTokens.get(String.format("%s_%s", key.teamId, key.userId));
-    }
-
-    @Override
-    public void setTeamName(String teamId, String teamName) {
     }
 
     @Override
