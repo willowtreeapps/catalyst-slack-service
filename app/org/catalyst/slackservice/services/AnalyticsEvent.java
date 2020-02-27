@@ -27,7 +27,6 @@ public class AnalyticsEvent {
     }
 
     public Map<String, String> getMap() {
-        // TODO: should empty strings be included, should that be handled here or in the service?
         return new HashMap<>() {{
             put("v", version);
             put("t", type);

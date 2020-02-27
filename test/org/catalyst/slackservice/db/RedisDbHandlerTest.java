@@ -1,6 +1,5 @@
 package org.catalyst.slackservice.db;
 
-import org.catalyst.slackservice.services.AnalyticsKey;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

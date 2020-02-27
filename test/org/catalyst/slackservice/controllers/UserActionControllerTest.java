@@ -278,29 +278,6 @@ public class UserActionControllerTest extends WithApplication {
     }
 
     @Test
-    public void testBiasCorrectEmptyCorrectionAction() {
-        // TODO: this test seems the same as bias correct action
-        var requestBody = new HashMap<String, String[]>();
-
-        var action = new Action();
-        action.name = "she's great";
-        action.value = "yes";
-
-        var interactiveMessage = getValidInteractiveMessage();
-        interactiveMessage.actions = new ArrayList<>(Arrays.asList(action));
-
-        var payload = new String[]{Json.toJson(interactiveMessage).toString()};
-        requestBody.put("payload", payload);
-
-        var request = new Http.RequestBuilder()
-                .method(POST)
-                .uri(URI).bodyFormArrayValues(requestBody);
-
-        var result = route(app, request);
-        assertEquals(NO_CONTENT, result.status());
-    }
-
-    @Test
     public void testUnsupportedAction() {
         var requestBody = new HashMap<String, String[]>();
 
