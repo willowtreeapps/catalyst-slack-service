@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
+import org.catalyst.slackservice.services.*;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MessageHandler;
 import org.catalyst.slackservice.util.RequestVerifier;
@@ -55,19 +54,19 @@ public class EventController extends Controller {
     private final MessageCorrector _biasCorrector;
     private final AppService _slackService;
     private final HttpExecutionContext _ec;
-    private final AnalyticsHandler _db;
-    private final TokenHandler _tokendb;
+    private final AnalyticsService _analyticsService;
+    private final TokenHandler _tokenDb;
 
     @Inject
     public EventController(HttpExecutionContext ec, AppConfig config, MessagesApi messagesApi,
-                           MessageCorrector biasCorrector, AppService slackService, AnalyticsHandler db, TokenHandler tokenDb) {
+                           MessageCorrector biasCorrector, AppService slackService, AnalyticsService analyticsService, TokenHandler tokenDb) {
         this._config = config;
         this._messagesApi = messagesApi;
         this._biasCorrector = biasCorrector;
         this._slackService = slackService;
         this._ec = ec;
-        this._db = db;
-        this._tokendb = tokenDb;
+        this._analyticsService = analyticsService;
+        this._tokenDb = tokenDb;
     }
 
     /**
@@ -145,7 +144,7 @@ public class EventController extends Controller {
      * @return
      */
     private CompletionStage<Result> handleEventCallback(final Event event) {
-        var bot = _tokendb.getBotInfo(event.team);
+        var bot = _tokenDb.getBotInfo(event.team);
         if (bot == null || bot.userId == null || bot.token == null) {
             return ResultHelper.ok();
         }
@@ -188,15 +187,10 @@ public class EventController extends Controller {
     }
 
     private CompletionStage<Result> handleUserMessage(final MessageHandler messages, final Event event, final Bot bot) {
-        var key = new AnalyticsKey();
-        key.teamId = event.team;
-        key.channelId = event.channel;
-
-        _db.incrementMessageCounts(key);
+        var key = new AnalyticsKey(_config.getTrackingId(), event.channel, event.user);
         var correctorResult = _biasCorrector.getCorrection(event.text, messages.slackLocale);
-
         return correctorResult.thenComposeAsync(correction -> {
-
+            _analyticsService.track(AnalyticsEvent.createMessageEvent(key, correction));
             if (correction.isEmpty()) {
                 return ResultHelper.ok();
             }
@@ -206,7 +200,7 @@ public class EventController extends Controller {
             tokenKey.userId = event.user;
 
             // if user has not authorized, show auth prompt instead of the correction prompt
-            var userToken = _tokendb.getUserToken(tokenKey);
+            var userToken = _tokenDb.getUserToken(tokenKey);
             if (userToken == null) {
                 return _slackService.postReauthMessage(messages, event, bot)
                     .thenApplyAsync(slackResponse -> handleSlackResponse(event, slackResponse, "reauth failed"), _ec.current());
@@ -227,7 +221,7 @@ public class EventController extends Controller {
 
     private CompletionStage<Result> handleRevokeTokens(final String teamId, final Event event) {
         return CompletableFuture.supplyAsync(() -> {
-            _tokendb.deleteTokens(teamId, event.tokens.oauth);
+            _tokenDb.deleteTokens(teamId, event.tokens.oauth);
             return noContent();
         }, _ec.current());
     }

@@ -28,4 +28,5 @@ public class SlackConfig implements AppConfig {
     public String getUpdateUrl() { return _config.getString("update_url"); }
     public String getAuthorizedUrl() { return _config.getString("authorized_url"); }
     public String getConversationsInfoUrl() { return _config.getString("conversations_info_url"); }
+    public String getTrackingId() { return _config.getString("tracking_id"); }
 }

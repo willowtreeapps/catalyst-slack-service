@@ -3,14 +3,13 @@ package org.catalyst.slackservice.controllers;
 import org.catalyst.slackservice.db.*;
 import org.catalyst.slackservice.domain.Event;
 import org.catalyst.slackservice.domain.SlackResponse;
-import org.catalyst.slackservice.services.AppService;
-import org.catalyst.slackservice.services.MessageCorrector;
-import org.catalyst.slackservice.services.MockCorrector;
-import org.catalyst.slackservice.services.MockSlackService;
+import org.catalyst.slackservice.services.*;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MockConfig;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Json;
@@ -24,13 +23,16 @@ import static play.test.Helpers.*;
 public class EventControllerTest extends WithApplication {
     private static final String EVENTS_URI = "/bias-correct/v2/slack/events";
     private MockDbHandler mockDbHandler = new MockDbHandler();
+    private AnalyticsService mockAnalyticsService;
+
     @Override
     protected Application provideApplication() {
+        mockAnalyticsService = Mockito.mock(AnalyticsService.class);
         return new GuiceApplicationBuilder()
                 .overrides(bind(AppConfig.class).to(MockConfig.class))
                 .overrides(bind(MessageCorrector.class).to(MockCorrector.class))
                 .overrides(bind(AppService.class).to(MockSlackService.class))
-                .overrides(bind(AnalyticsHandler.class).toInstance(mockDbHandler))
+                .overrides(bind(AnalyticsService.class).toInstance(mockAnalyticsService))
                 .overrides(bind(TokenHandler.class).toInstance(mockDbHandler))
                 .build();
     }
@@ -202,24 +204,33 @@ public class EventControllerTest extends WithApplication {
     @Test
     public void testNonBiasedMessage() {
         var eventRequest = getValidEventCallback();
-
         eventRequest.event.type = "message";
         eventRequest.event.text = "text";
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
+                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER123"),
+                "");
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
                 .uri(EVENTS_URI).bodyJson(Json.toJson(eventRequest));
 
         var result = route(app, httpRequest);
+
         assertEquals(OK, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test
     public void testBiasCorrected() {
         var eventRequest = getValidEventCallback();
-
         eventRequest.event.type = "message";
         eventRequest.event.text = "she's so quiet";
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
+                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER123"),
+                "correction");
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -231,15 +242,21 @@ public class EventControllerTest extends WithApplication {
 
         assertEquals("12345.67890", slackResponse.messageTs);
         assertEquals(OK, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test
     public void testBiasedUnauthorizedUser() {
         var eventRequest = getValidEventCallback();
-
         eventRequest.event.type = "message";
         eventRequest.event.text = "she's so quiet";
         eventRequest.event.user = "USER999";
+        var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
+                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER999"),
+                "correction");
 
         var httpRequest = new Http.RequestBuilder()
                 .method(POST)
@@ -251,6 +268,10 @@ public class EventControllerTest extends WithApplication {
 
         assertEquals("34567.89012", slackResponse.messageTs);
         assertEquals(OK, result.status());
+
+        var argument = ArgumentCaptor.forClass(AnalyticsEvent.class);
+        Mockito.verify(mockAnalyticsService, Mockito.times(1)).track(argument.capture());
+        assertEquals(expectedAnalyticsEvent.getMap(), argument.getValue().getMap());
     }
 
     @Test

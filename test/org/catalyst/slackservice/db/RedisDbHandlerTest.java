@@ -21,62 +21,6 @@ public class RedisDbHandlerTest {
     }
 
     @Test
-    public void testIncrementTotals() {
-        try {
-            var key = new AnalyticsKey();
-            dbManager.incrementMessageCounts(key);
-
-            key.teamId = "TEAM123";
-            key.channelId = "CHANNEL123";
-            dbManager.incrementMessageCounts(key);
-        } catch(Exception e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testIncrementLearnMore() {
-        try {
-            var key = new AnalyticsKey();
-            dbManager.incrementLearnMoreMessageCounts(key);
-
-            key.teamId = "TEAM123";
-            key.channelId = "CHANNEL123";
-            dbManager.incrementLearnMoreMessageCounts(key);
-        } catch(Exception e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testIncrementCorrected() {
-        try {
-            var key = new AnalyticsKey();
-            dbManager.incrementCorrectedMessageCounts(key);
-
-            key.teamId = "TEAM123";
-            key.channelId = "CHANNEL123";
-            dbManager.incrementCorrectedMessageCounts(key);
-        } catch(Exception e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testIncrementIgnored() {
-        try {
-            var key = new AnalyticsKey();
-            dbManager.incrementIgnoredMessageCounts(key);
-
-            key.teamId = "TEAM123";
-            key.channelId = "CHANNEL123";
-            dbManager.incrementIgnoredMessageCounts(key);
-        } catch(Exception e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
     public void testGetUserToken() {
         var key = new TokenKey();
         key.teamId = "TEAM123";

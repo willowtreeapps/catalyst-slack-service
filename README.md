@@ -23,6 +23,7 @@ SLACK_TOKEN={SLACK_TOKEN}
 SLACK_SIGNING_SECRET={SIGNING_SECRET}
 SLACK_CLIENT_SECRET={CLIENT_SECRET}
 SLACK_CLIENT_ID={CLIENT_ID}
+TRACKING_ID={TRACKING_ID}
 ```
 
 `PLAY_SECRET_KEY`: You can generate a new secret using `sbt playGenerateSecret` or if you don't already have an sbt server running `head -c 30 /dev/random | base64`.
@@ -31,6 +32,7 @@ SLACK_CLIENT_ID={CLIENT_ID}
 
 `SLACK_TOKEN` && `SIGNING_SECRET` && `CLIENT_SECRET` && `CLIENT_ID`: Navigate to api.slack.com/app. Select your app and view the `Basic Information` section.
 
+`TRACKING_ID`: Google Analytics Tracking ID (ex. UA-XXXX-Y).
 
 ### [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 Open Project
