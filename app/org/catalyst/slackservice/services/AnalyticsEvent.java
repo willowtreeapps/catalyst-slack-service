@@ -18,12 +18,22 @@ public class AnalyticsEvent {
     private String category;
     private String action;
     private String label;
+    private String cd1;
+    private String cd2;
+    private String cd3;
+    private String cd4;
+    private String cd5;
 
     private AnalyticsEvent(AnalyticsKey key, String action) {
         this.trackingId = key.trackingId;
         this.userId = key.userId;
         this.category = key.channelId;
         this.action = action;
+        this.cd1 = key.teamName;
+        this.cd2 = key.teamId;
+        this.cd3 = key.channelId;
+        this.cd4 = key.userId;
+        this.cd5 = key.locale.getCode();
     }
 
     private AnalyticsEvent(AnalyticsKey key, String action, String label) {
@@ -40,6 +50,11 @@ public class AnalyticsEvent {
             put("ec", category);
             put("ea", action);
             put("el", label);
+            put("cd1", cd1);
+            put("cd2", cd2);
+            put("cd3", cd3);
+            put("cd4", cd4);
+            put("cd5", cd5);
         }};
     }
 

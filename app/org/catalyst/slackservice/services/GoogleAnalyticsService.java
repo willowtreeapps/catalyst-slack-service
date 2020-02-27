@@ -27,6 +27,7 @@ public class GoogleAnalyticsService implements AnalyticsService {
          var request = _wsClient.url(uri.toString())
                  .addHeader("User-Agent", USER_AGENT);
          request = addQueryParameters(request, event.getMap()); // addQueryParameters will url encode the values
+
          request.post("");
       }
       catch(Exception e) {

@@ -40,9 +40,7 @@ public class SlackServiceTest {
     @Before
     public void setup() {
         config = new MockConfig();
-        bot = new Bot();
-        bot.userId = "BOT123";
-        bot.token = "xoxb-1234";
+        bot = new Bot("xoxb-2345", "BOT123", "test-123");
 
         Map<String, String> messagesMap = new HashMap<>();
         messagesMap.put("message.suggestion", "Suggested correction");

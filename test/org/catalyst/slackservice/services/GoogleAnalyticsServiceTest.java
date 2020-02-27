@@ -1,5 +1,6 @@
 package org.catalyst.slackservice.services;
 
+import org.catalyst.slackservice.util.SlackLocale;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -8,6 +9,7 @@ import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class GoogleAnalyticsServiceTest {
 
@@ -19,7 +21,7 @@ public class GoogleAnalyticsServiceTest {
         Mockito.when(wsClientMock.url(Mockito.anyString())).thenReturn(wsRequestMock);
         Mockito.when(wsRequestMock.addHeader(Mockito.anyString(), Mockito.anyString())).thenReturn(wsRequestMock);
 
-        var key = new AnalyticsKey("trackingId", "channelId", "userId");
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("en-US"));
         var trigger = "trigger";
         var event = AnalyticsEvent.createMessageEvent(key, trigger);
 
@@ -35,14 +37,43 @@ public class GoogleAnalyticsServiceTest {
 
         Mockito.verify(wsRequestMock, Mockito.times(1))
                 .addHeader(keyArgument.capture(), valueArgument.capture());
-        Mockito.verify(wsRequestMock, Mockito.times(7))
+        Mockito.verify(wsRequestMock, Mockito.times(12))
                 .addQueryParameter(keyArgument.capture(), valueArgument.capture());
 
-        Assert.assertEquals(keyArgument.getAllValues(),
-                Arrays.asList("User-Agent", "t", "v", "el", "ea", "tid", "ec", "cid"));
-        Assert.assertEquals(valueArgument.getAllValues(),
-                Arrays.asList("CatalystBiasCorrectService/1.0.1", "event", "1", "", "Message - Bias Match", "trackingId", "channelId", "userId"));
-
+        Assert.assertEquals(keyArgument.getAllValues(), expectedRequestKeys);
+        Assert.assertEquals(valueArgument.getAllValues(), expectedRequestValues);
         Mockito.verify(wsRequestMock, Mockito.times(1)).post("");
     }
+
+    private static List<String> expectedRequestKeys = Arrays.asList(
+        "User-Agent",
+        "cd2",
+        "cd1",
+        "cd4",
+        "cd3",
+        "t",
+        "cd5",
+        "v",
+        "el",
+        "ea",
+        "tid",
+        "ec",
+        "cid"
+    );
+
+    private static List<String> expectedRequestValues = Arrays.asList(
+        "CatalystBiasCorrectService/1.0.1",
+        "teamId",
+        "teamName",
+        "userId",
+        "channelId",
+        "event",
+        "en-US",
+        "1",
+        "",
+        "Message - Bias Match",
+        "trackingId",
+        "channelId",
+        "userId"
+    );
 }

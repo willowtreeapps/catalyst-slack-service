@@ -6,6 +6,7 @@ import org.catalyst.slackservice.domain.SlackResponse;
 import org.catalyst.slackservice.services.*;
 import org.catalyst.slackservice.util.AppConfig;
 import org.catalyst.slackservice.util.MockConfig;
+import org.catalyst.slackservice.util.SlackLocale;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -44,9 +45,7 @@ public class EventControllerTest extends WithApplication {
         token.teamId = "TEAM123";
         mockDbHandler.setUserToken(token, "xoxp-1234");
 
-        Bot bot = new Bot();
-        bot.token = "xoxb-2345";
-        bot.userId = "BOT123";
+        Bot bot = new Bot("xoxb-2345", "BOT123", "team-123");
         mockDbHandler.setBotInfo("TEAM123", bot);
     }
 
@@ -207,7 +206,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.type = "message";
         eventRequest.event.text = "text";
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
-                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER123"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "valid_channel_123", "USER123", new SlackLocale("en")),
                 "");
 
         var httpRequest = new Http.RequestBuilder()
@@ -229,7 +228,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.type = "message";
         eventRequest.event.text = "she's so quiet";
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
-                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER123"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "valid_channel_123", "USER123", new SlackLocale("en")),
                 "correction");
 
         var httpRequest = new Http.RequestBuilder()
@@ -255,7 +254,7 @@ public class EventControllerTest extends WithApplication {
         eventRequest.event.text = "she's so quiet";
         eventRequest.event.user = "USER999";
         var expectedAnalyticsEvent = AnalyticsEvent.createMessageEvent(
-                new AnalyticsKey("UA-XXXX-Y", "valid_channel_123", "USER999"),
+                new AnalyticsKey("UA-XXXX-Y", "TEAM123", "team-123", "valid_channel_123", "USER999", new SlackLocale("en")),
                 "correction");
 
         var httpRequest = new Http.RequestBuilder()

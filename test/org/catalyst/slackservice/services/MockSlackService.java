@@ -29,6 +29,7 @@ public class MockSlackService implements AppService {
             authResponse.ok = true;
             authResponse.team = new AuthResponse.Team();
             authResponse.team.id = "TEAM234";
+            authResponse.team.name = "team-234";
             authResponse.user = new AuthResponse.AuthedUser();
             authResponse.user.id = "USER123";
             authResponse.user.accessToken = "xoxp-token-123";
