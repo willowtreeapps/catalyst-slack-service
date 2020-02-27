@@ -1,18 +1,15 @@
 package org.catalyst.slackservice.services;
 
 import com.google.inject.Inject;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.ws.WSClient;
-import play.libs.ws.WSResponse;
+import play.libs.ws.WSRequest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.concurrent.CompletionStage;
+import java.util.Map;
 
 public class GoogleAnalyticsService implements AnalyticsService {
    private final Logger logger = LoggerFactory.getLogger(GoogleAnalyticsService.class);
@@ -25,8 +22,10 @@ public class GoogleAnalyticsService implements AnalyticsService {
 
    public void track(AnalyticsEvent event) {
       try {
-         var uri = getURI(event);
-         var request = _wsClient.url(uri.toString());
+         var uri = getURI();
+         var request = _wsClient.url(uri.toString())
+                 .addHeader("User-Agent", "CatalystBiasCorrectService/1.0.1");
+         request = addQueryParameters(request, event.getMap()); // addQueryParameters will url encode the values
          request.post("");
       }
       catch(Exception e) {
@@ -34,17 +33,19 @@ public class GoogleAnalyticsService implements AnalyticsService {
       }
    }
 
-   private URI getURI(AnalyticsEvent event) throws URISyntaxException {
-      var parameters = new ArrayList<NameValuePair>();
-      for (var entry: event.getMap().entrySet()) {
-         parameters.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+   private WSRequest addQueryParameters(WSRequest request, Map<String, String> values) {
+      for (var entry: values.entrySet()) {
+         request.addQueryParameter(entry.getKey(), entry.getValue()); // addQueryParmeter will url encode the value
       }
 
+      return request;
+   }
+
+   private URI getURI() throws URISyntaxException {
       return new URIBuilder()
               .setScheme("https")
               .setHost("google-analytics.com")
               .setPath("/collect")
-              .setParameters(parameters)
               .build();
    }
 }
