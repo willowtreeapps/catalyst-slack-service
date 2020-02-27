@@ -45,7 +45,7 @@ public class AnalyticsEventTest {
     @Test
     @Theory
     public void testNoActionCreateMessageEvent(String trigger) {
-        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("en-US"));
 
         var expected = new HashMap<String, String>() {{
             put("v", "1");
@@ -69,7 +69,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testYesCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("fr-FR"));
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("fr-FR"));
         var action = new Action();
         action.value = Action.YES.toString();
 
@@ -95,7 +95,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testNoCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("en-US"));
         var action = new Action();
         action.value = Action.NO.toString();
 
@@ -121,7 +121,7 @@ public class AnalyticsEventTest {
 
     @Test
     public void testLearnMoreCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId","teamId","teamName", "channelId", "userId", new SlackLocale("en-US"));
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("en-US"));
         var action = new Action();
         action.value = Action.LEARN_MORE.toString();
 
@@ -147,7 +147,7 @@ public class AnalyticsEventTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidCreateMessageActionEvent() {
-        var key = new AnalyticsKey("trackingId", "teamId", "TeamName","channelId", "userId", new SlackLocale("en-US"));
+        var key = new AnalyticsKey("trackingId", "teamId", "teamName", "channelId", "userId", new SlackLocale("en-US"));
         var action = new Action(); // specify no value
 
         var expected = new HashMap<String, String>() {{
