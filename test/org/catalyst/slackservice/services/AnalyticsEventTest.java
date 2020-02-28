@@ -24,7 +24,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "Message - Bias Match");
             put("el", "");
             put("cd1", "teamName");
@@ -52,7 +52,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "Message - No Action");
             put("el", "");
             put("cd1", "teamName");
@@ -78,7 +78,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "User - Applied Suggestion");
             put("el", "");
             put("cd1", "teamName");
@@ -104,7 +104,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "User - Rejected Suggestion");
             put("el", "");
             put("cd1", "teamName");
@@ -130,7 +130,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "User - Clicked Learn More");
             put("el", "");
             put("cd1", "teamName");
@@ -155,7 +155,7 @@ public class AnalyticsEventTest {
             put("t", "event");
             put("tid", "trackingId");
             put("cid", "userId");
-            put("ec", "channelId");
+            put("ec", "teamId");
             put("ea", "User - Clicked Learn More");
             put("el", "");
             put("cd1", "teamName");
