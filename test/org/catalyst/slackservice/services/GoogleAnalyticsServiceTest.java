@@ -73,7 +73,7 @@ public class GoogleAnalyticsServiceTest {
         "",
         "Message - Bias Match",
         "trackingId",
-        "channelId",
+        "teamId",
         "userId"
     );
 }
