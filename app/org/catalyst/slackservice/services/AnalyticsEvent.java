@@ -27,7 +27,7 @@ public class AnalyticsEvent {
     private AnalyticsEvent(AnalyticsKey key, String action) {
         this.trackingId = key.trackingId;
         this.userId = key.userId;
-        this.category = key.channelId;
+        this.category = key.teamId;
         this.action = action;
         this.cd1 = key.teamName;
         this.cd2 = key.teamId;
