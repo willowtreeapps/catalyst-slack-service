@@ -21,4 +21,7 @@
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
+  <logger name="org.catalyst.slackservice.services.SlackService" level="INFO" >
+    <appender-ref ref="ASYNCSTDOUT"/>
+  </logger>
 </configuration>

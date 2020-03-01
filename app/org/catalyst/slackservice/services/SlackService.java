@@ -29,6 +29,7 @@ public class SlackService implements AppService, WSBodyReadables {
     private final static String QUERY_PARAM_TOKEN = "token";
     private final static String QUERY_PARAM_CHANNEL = "channel";
     private final static String QUERY_PARAM_INCLUDE_LOCALE = "include_locale";
+    private final static String SIGNIN_PARAM_TEAM_ID = "team";
 
 
     private final WSClient _wsClient;
@@ -69,15 +70,16 @@ public class SlackService implements AppService, WSBodyReadables {
 
     @Override
     public CompletionStage<SlackResponse> postChannelJoin(final MessageHandler messages, final Event event, final Bot bot) {
+        var signinUrl = getSigninUrl(event);
+        var url = _config.getPostEphemeralUrl();
 
-        String url = _config.getPostEphemeralUrl();
-        Message message = MessageGenerator.generateUserJoinedMessage(messages, event,
-                bot.token, _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+        var message = MessageGenerator.generateUserJoinedMessage(messages, event,
+                bot.token, signinUrl, _config.getLearnMoreUrl());
 
         if (bot.userId.equals(event.user)) {
             url = _config.getPostMessageUrl();
             message = MessageGenerator.generatePluginAddedMessage(messages, event,
-                bot.token, _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+                bot.token, signinUrl, _config.getLearnMoreUrl());
         }
 
         return postReply(url, message, bot.token);
@@ -85,8 +87,8 @@ public class SlackService implements AppService, WSBodyReadables {
 
     @Override
     public CompletionStage<SlackResponse> postReauthMessage(final MessageHandler messages, final Event event, final Bot bot) {
-        Message message = MessageGenerator.generatePluginAddedMessage(messages, event,
-                bot.token, _config.getAppSigninUrl(), _config.getLearnMoreUrl());
+        var message = MessageGenerator.generatePluginAddedMessage(messages, event,
+                bot.token, getSigninUrl(event), _config.getLearnMoreUrl());
         message.user = event.user;
         return postReply(_config.getPostEphemeralUrl(), message, bot.token);
     }
@@ -100,7 +102,14 @@ public class SlackService implements AppService, WSBodyReadables {
 
         var jsonPromise = request.get();
 
-        return jsonPromise.thenApplyAsync(r -> Json.fromJson(r.getBody(json()), AuthResponse.class), _ec.current());
+        return jsonPromise.thenApplyAsync(r -> {
+            var response = r.getBody(json());
+            var authResponse = Json.fromJson(response, AuthResponse.class);
+            if (!authResponse.ok) {
+                logger.error("auth response --> {}", response);
+            }
+            return authResponse;
+        }, _ec.current());
     }
 
     @Override
@@ -179,5 +188,10 @@ public class SlackService implements AppService, WSBodyReadables {
         message.token = bot.token;
 
         return postReply(url, message, message.token);
+    }
+
+    private String getSigninUrl(final Event event) {
+        logger.info("sign in url generated for teamId {}, channel {}, user {}", event.team, event.channel, event.user);
+        return String.format("%s&%s=%s", _config.getAppSigninUrl(), SIGNIN_PARAM_TEAM_ID, event.team);
     }
 }
