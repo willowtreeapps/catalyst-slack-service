@@ -53,7 +53,7 @@ Press Run
 ### [Docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
 sbt provides the infrastructure to easily build out a Docker image from our application. The current build.sbt file is configured with the options to use OpenJDK 12 on Alpine. This is intended to keep our shipping image as lean as possible. The application.conf file has also been updated to capture a few values from the environment when available. Finally, the build.sbt file has the option to configure the current version from an environment variable (which will be captured in the docker container tags).
 
-Create a `prod.env` file containing all configuration outlined above. Then publish your project locally and run the the container.
+Create a `prod.env` file containing all configuration outlined above. Then publish your project locally and run the container.
 
 ```
 sbt docker:publishLocal
