@@ -8,7 +8,6 @@ A microservice that integrates Slack and [Bias Correction Service](https://githu
 * [docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
 * [redis](https://redis.io/topics/quickstart) 
     - ```docker run --name my-redis -p 6379:6379 --restart always --detach redis```
-* TODO - Slack Permissions
 
 ## Run
 
