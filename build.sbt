@@ -33,7 +33,7 @@ import com.typesafe.sbt.packager.docker._
 dockerPermissionStrategy := DockerPermissionStrategy.Run
 dockerVersion := Some(DockerVersion(18, 9, 0, Some("ce")))
 dockerRepository := sys.env.get("DOCKER_REPOSITORY")
-dockerBaseImage := "adoptopenjdk/openjdk12:x86_64-alpine-jre-12.33"
+dockerBaseImage := "openjdk:12-alpine"
 dockerCommands ++= Seq(
   Cmd("USER", "root"),
   ExecCmd("RUN", "apk", "add", "--no-cache", "bash"),
