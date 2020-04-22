@@ -63,7 +63,7 @@
           "name": "TRACKING_ID"
         }
       ],
-      "memory": 512,
+      "memoryReservation": 512,
       "image": "<aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/catalyst-slack-service:latest",
       "name": "slack"
     }
