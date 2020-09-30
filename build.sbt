@@ -33,6 +33,7 @@ import com.typesafe.sbt.packager.docker._
 dockerPermissionStrategy := DockerPermissionStrategy.Run
 dockerVersion := Some(DockerVersion(18, 9, 0, Some("ce")))
 dockerRepository := sys.env.get("DOCKER_REPOSITORY")
+dockerUpdateLatest := true
 dockerBaseImage := "openjdk:12-alpine"
 dockerCommands ++= Seq(
   Cmd("USER", "root"),
