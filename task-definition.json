@@ -12,14 +12,9 @@
       },
       "portMappings": [
         {
-          "hostPort": 80,
+          "hostPort": 0,
           "protocol": "tcp",
           "containerPort": 9000
-        },
-        {
-          "hostPort": 6379,
-          "protocol": "tcp",
-          "containerPort": 6379
         }
       ],
       "cpu": 0,
